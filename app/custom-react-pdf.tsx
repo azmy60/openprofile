@@ -1,0 +1,124 @@
+"use client";
+
+import Frame from "react-frame-component";
+import dynamic from "next/dynamic";
+import { Font, PDFViewer } from "@react-pdf/renderer";
+import { useEffect } from "react";
+
+const SUPPRESSED_WARNINGS = ["DOCUMENT", "PAGE", "TEXT", "VIEW", "LINK"];
+
+const mustBeSuppressed = (_msg: any, ...args: any[]) => {
+  return SUPPRESSED_WARNINGS.some((entry) => args[0]?.includes(entry));
+};
+
+/**
+ * Suppress ResumePDF development errors.
+ * See ResumePDF doc string for context.
+ */
+function useSuppressedReactPDFError() {
+  useEffect(() => {
+    if (window.location.hostname !== "localhost") return;
+
+    const origConsoleError = console.error;
+
+    console.error = (...args) => {
+      if (!mustBeSuppressed(...args)) origConsoleError(...args);
+    };
+
+    return () => {
+      console.error = origConsoleError;
+    };
+  }, []);
+};
+
+const PX_PER_PT = 4 / 3;
+const A4_WIDTH_PT = 595;
+const A4_WIDTH_PX = A4_WIDTH_PT * PX_PER_PT;
+const A4_HEIGHT_PX = A4_WIDTH_PX * PX_PER_PT;
+
+const FONT_FAMILIES = ["Inter"];
+
+const FONT_PRELOAD_LINKS = FONT_FAMILIES.map(
+  (font) =>
+    `<link rel="preload" as="font" href="/fonts/${font}/${font}-Regular.ttf" type="font/ttf" crossorigin="anonymous">` +
+    `<link rel="preload" as="font" href="/fonts/${font}/${font}-Bold.ttf" type="font/ttf" crossorigin="anonymous">`
+).join("");
+
+const FONT_FACES_CSS = FONT_FAMILIES.map(
+  (font) =>
+    `@font-face {font-family: "${font}"; src: url("/fonts/${font}/${font}-Regular.ttf");}` +
+    `@font-face {font-family: "${font}"; src: url("/fonts/${font}/${font}-Bold.ttf"); font-weight: bold;}`
+).join("");
+
+FONT_FAMILIES.forEach((font) => {
+  Font.register({
+    family: font,
+    src: `/fonts/${font}/${font}-Regular.ttf`,
+    fontWeight: "normal",
+  });
+  Font.register({
+    family: font,
+    src: `/fonts/${font}/${font}-Bold.ttf`,
+    fontWeight: "bold",
+  });
+});
+
+/**
+ * IFrame is used here for style isolation, since react pdf uses pt unit.
+ * It creates a sandbox document body that uses letter/A4 size as width.
+ */
+const CustomPDFViewer: React.FC<React.ComponentProps<typeof PDFViewer>> = (
+  props
+) => {
+  useSuppressedReactPDFError();
+  return (
+    <div
+      style={{
+        maxWidth: `${A4_WIDTH_PX * 1}px`,
+        maxHeight: `${A4_HEIGHT_PX * 1}px`,
+      }}
+    >
+      {/*
+        TODO we only need to have the IFRAME here so it is isolated.
+        No need to include the outer divs. We can put these divs outside
+        of this component. maybe?? read the text below.
+      */}
+      {/* There is an outer div and an inner div here. The inner div sets the iframe width and uses transform scale to zoom in/out the resume iframe.
+        While zooming out or scaling down via transform, the element appears smaller but still occupies the same width/height. Therefore, we use the
+        outer div to restrict the max width & height proportionally */}
+      <div
+        style={{
+          width: `${A4_WIDTH_PX}px`,
+          height: `${A4_HEIGHT_PX}px`,
+          transform: `scale(${1})`,
+        }}
+        className="origin-top-left bg-white shadow-lg"
+      >
+        <Frame
+          style={{ width: "100%", height: "100%" }}
+          initialContent={`
+          <!DOCTYPE html>
+          <html>
+            <head>
+              ${FONT_PRELOAD_LINKS}
+              <style>${FONT_FACES_CSS}</style>
+            </head>
+            <body style="overflow: hidden; width: ${A4_WIDTH_PT}pt; margin: 0; padding: 0; -webkit-text-size-adjust:none;">
+              <div></div>
+            </body>
+          </html>
+        `}
+        >
+          {props.children}
+        </Frame>
+      </div>
+    </div>
+  );
+};
+// Iframe can't be server side rendered, so we use dynamic import to load it only on client side
+export const CustomDynamicPDFViewer = dynamic(
+  () => Promise.resolve(CustomPDFViewer),
+  {
+    ssr: false,
+  }
+);
