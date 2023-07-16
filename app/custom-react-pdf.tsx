@@ -2,7 +2,7 @@
 
 import Frame from "react-frame-component";
 import dynamic from "next/dynamic";
-import { Font, PDFViewer } from "@react-pdf/renderer";
+import { Font } from "@react-pdf/renderer";
 import { useEffect } from "react";
 
 const SUPPRESSED_WARNINGS = ["DOCUMENT", "PAGE", "TEXT", "VIEW", "LINK"];
@@ -29,12 +29,10 @@ function useSuppressedReactPDFError() {
       console.error = origConsoleError;
     };
   }, []);
-};
+}
 
-const PX_PER_PT = 4 / 3;
 const A4_WIDTH_PT = 595;
-const A4_WIDTH_PX = A4_WIDTH_PT * PX_PER_PT;
-const A4_HEIGHT_PX = A4_WIDTH_PX * PX_PER_PT;
+const A4_HEIGHT_PT = 842;
 
 const FONT_FAMILIES = ["Inter"];
 
@@ -65,38 +63,24 @@ FONT_FAMILIES.forEach((font) => {
 
 /**
  * IFrame is used here for style isolation, since react pdf uses pt unit.
- * It creates a sandbox document body that uses letter/A4 size as width.
+ * It creates a sandbox document body that uses A4 size as width.
  */
-const CustomPDFViewer: React.FC<React.ComponentProps<typeof PDFViewer>> = (
-  props
-) => {
+const CustomPDFViewer: React.FC<
+  React.ComponentProps<typeof Frame> & {
+    iframeRef: React.ComponentProps<typeof Frame>["ref"];
+  }
+> = ({ iframeRef, ...props }) => {
   useSuppressedReactPDFError();
   return (
-    <div
+    <Frame
+      {...props}
+      ref={iframeRef}
       style={{
-        maxWidth: `${A4_WIDTH_PX * 1}px`,
-        maxHeight: `${A4_HEIGHT_PX * 1}px`,
+        width: `${A4_WIDTH_PT}pt`,
+        height: `${A4_HEIGHT_PT}pt`,
+        backgroundColor: "white",
       }}
-    >
-      {/*
-        TODO we only need to have the IFRAME here so it is isolated.
-        No need to include the outer divs. We can put these divs outside
-        of this component. maybe?? read the text below.
-      */}
-      {/* There is an outer div and an inner div here. The inner div sets the iframe width and uses transform scale to zoom in/out the resume iframe.
-        While zooming out or scaling down via transform, the element appears smaller but still occupies the same width/height. Therefore, we use the
-        outer div to restrict the max width & height proportionally */}
-      <div
-        style={{
-          width: `${A4_WIDTH_PX}px`,
-          height: `${A4_HEIGHT_PX}px`,
-          transform: `scale(${1})`,
-        }}
-        className="origin-top-left bg-white shadow-lg"
-      >
-        <Frame
-          style={{ width: "100%", height: "100%" }}
-          initialContent={`
+      initialContent={`
           <!DOCTYPE html>
           <html>
             <head>
@@ -108,13 +92,10 @@ const CustomPDFViewer: React.FC<React.ComponentProps<typeof PDFViewer>> = (
             </body>
           </html>
         `}
-        >
-          {props.children}
-        </Frame>
-      </div>
-    </div>
+    />
   );
 };
+
 // Iframe can't be server side rendered, so we use dynamic import to load it only on client side
 export const CustomDynamicPDFViewer = dynamic(
   () => Promise.resolve(CustomPDFViewer),

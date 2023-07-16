@@ -8,6 +8,7 @@ import {
   useEffect,
   useRef,
   useState,
+  MutableRefObject,
 } from "react";
 import { CustomDynamicPDFViewer } from "./custom-react-pdf";
 import ReactPDF, {
@@ -40,36 +41,75 @@ const DynamicPDFDownloadLink = dynamic(() => Promise.resolve(PDFDownloadLink), {
   ssr: false,
 });
 
+function autoResize(
+  targetContainer: HTMLElement,
+  container: HTMLElement,
+  content: HTMLElement
+) {
+  const containerStyles = getComputedStyle(targetContainer);
+  const containerHeight =
+    targetContainer.clientHeight -
+    parseFloat(containerStyles.paddingTop) -
+    parseFloat(containerStyles.paddingBottom);
+  const contentHeight = content.clientHeight;
+  const contentWidth = content.clientWidth;
+
+  const ratio = containerHeight / contentHeight;
+  content.style.transform = `scale(${ratio})`;
+
+  container.style.width = `${contentWidth * ratio}px`;
+  container.style.height = `${contentHeight * ratio}px`;
+}
+
 export default function Builder() {
   const { onChange, content, addSection } = useContent();
+  const pdfViewerTargetContainer = useRef<HTMLElement | null>(null);
+  const pdfViewerContainer = useRef<HTMLElement | null>(null);
+  const pdfViewer = useRef<HTMLIFrameElement | null>(null);
+
+  function updateScale<T>(el: T, ref: MutableRefObject<T>) {
+    ref.current = el;
+    if (!pdfViewerTargetContainer.current) return;
+    if (!pdfViewerContainer.current) return;
+    if (!pdfViewer.current) return;
+    autoResize(
+      pdfViewerTargetContainer.current,
+      pdfViewerContainer.current,
+      pdfViewer.current
+    );
+  }
+
   return (
-    <>
-      <div className="flex w-1/2 flex-col gap-4 p-4">
-        <div className="relative flex flex-col gap-4 rounded-md p-4 pt-6 shadow">
-          <SimpleInput
-            label="Name"
-            name="name"
-            value={content.name}
-            onChange={onChange}
-          />
-          <SimpleInput
-            label="Location"
-            name="location"
-            value={content.location}
-            onChange={onChange}
-          />
-          <SimpleInput
-            label="Email"
-            name="email"
-            value={content.email}
-            onChange={onChange}
-          />
-          <SimpleInput
-            label="Tel"
-            name="tel"
-            value={content.tel}
-            onChange={onChange}
-          />
+    <div className="relative min-h-0 flex w-full overflow-y-scroll">
+      <div className="flex w-1/2 flex-col gap-10 p-8">
+        <div>
+          <div className="text-lg font-bold">Personal</div>
+          <div className="grid grid-cols-2 pt-2 gap-4 rounded-md bg-white">
+            <SimpleInput
+              label="Name"
+              name="name"
+              value={content.name}
+              onChange={onChange}
+            />
+            <SimpleInput
+              label="Location"
+              name="location"
+              value={content.location}
+              onChange={onChange}
+            />
+            <SimpleInput
+              label="Email"
+              name="email"
+              value={content.email}
+              onChange={onChange}
+            />
+            <SimpleInput
+              label="Tel"
+              name="tel"
+              value={content.tel}
+              onChange={onChange}
+            />
+          </div>
         </div>
         {content.sections.map((section, index) => (
           <SectionInputGroup key={index} index={index} section={section} />
@@ -78,23 +118,39 @@ export default function Builder() {
         <SimpleBorderButton onClick={addSection}>
           Add New Section
         </SimpleBorderButton>
+        <div className="pt-[1px]" />
       </div>
-      <div className="w-1/2 p-4">
-        <CustomDynamicPDFViewer>
-          <Doc />
-        </CustomDynamicPDFViewer>
-        <DynamicPDFDownloadLink
-          document={<Doc />}
-          className="mt-6 inline-block w-full text-center rounded border border-indigo-600 px-12 py-2 text-sm font-medium text-indigo-600 hover:bg-indigo-600 hover:text-white focus:outline-none focus:ring active:bg-indigo-500"
+      <div className="sticky left-1/2 top-0 w-1/2 h-full px-4 py-4 bg-gray-300 flex flex-col">
+        <div
+          className="grow h-[calc(100%_-_2.5rem)] pb-4"
+          ref={(el) => updateScale(el, pdfViewerTargetContainer)}
         >
-          {({ loading, error }) => {
-            if (loading) return "Loading...";
-            if (error) return "Error: " + error;
-            return "Download as PDF";
-          }}
-        </DynamicPDFDownloadLink>
+          <div
+            className="mx-auto shadow"
+            ref={(el) => updateScale(el, pdfViewerContainer)}
+          >
+            <CustomDynamicPDFViewer
+              iframeRef={(el) => updateScale(el, pdfViewer)}
+              className="origin-top-left"
+            >
+              <Doc />
+            </CustomDynamicPDFViewer>
+          </div>
+        </div>
+        <div className="h-10">
+          <DynamicPDFDownloadLink
+            document={<Doc />}
+            className="w-full inline-block text-center rounded border border-indigo-600 bg-indigo-600 px-12 py-3 text-sm font-medium text-white hover:bg-transparent hover:text-indigo-600 focus:outline-none focus:ring active:text-indigo-500"
+          >
+            {({ loading, error }) => {
+              if (loading) return "Loading...";
+              if (error) return "Error: " + error;
+              return "Download as PDF";
+            }}
+          </DynamicPDFDownloadLink>
+        </div>
       </div>
-    </>
+    </div>
   );
 }
 
@@ -218,7 +274,7 @@ const SimpleInput: React.FC<{
         id={id}
         name={props.name}
         type="text"
-        className="mt-1 w-full rounded-md border-gray-200 sm:text-sm"
+        className="mt-1 w-full rounded-md border-gray-200 bg-gray-50 sm:text-sm"
         value={props.value}
         onChange={(e) => props.onChange?.(e, e.currentTarget.value)}
         {...props.inputProps}
@@ -233,25 +289,37 @@ const TextArea: React.FC<{
   textareaProps?: React.HTMLProps<HTMLTextAreaElement>;
   value?: React.HTMLProps<HTMLTextAreaElement>["value"];
   onChange?: (e: ChangeEvent<HTMLTextAreaElement>, value: string) => void;
+  formControlProps?: Partial<React.ComponentProps<typeof FormControl>>;
 }> = (props) => {
   const id = useId();
   const ref = useRef<HTMLTextAreaElement>(null);
   useAutosizeTextArea(ref.current, props.value as string);
   return (
-    <FormControl id={id} label={props.label}>
-      <span className="absolute right-1 top-2 peer-only-of-type:top-6 whitespace-nowrap rounded bg-gray-50 px-1 py-0.5 text-xs text-gray-300 font-bold">
-        MD
-      </span>
-      <textarea
-        id={id}
-        name={props.name}
-        ref={ref}
-        cols={2}
-        className="mt-1 w-full resize-none rounded-md border-gray-200 sm:text-sm"
-        onChange={(e) => props.onChange?.(e, e.currentTarget.value)}
-        value={props.value}
-        {...props.textareaProps}
-      />
+    <FormControl id={id} label={props.label} {...props.formControlProps}>
+      <div className="mt-1 rounded-md border border-gray-200 bg-gray-50">
+        <div className="flex pt-1 px-2">
+          <div className="group/md relative select-none ml-auto text-sm text-gray-400 font-bold">
+            <span className="text-xs">MD</span>
+            <div
+              role="tooltip"
+              className="group-hover/md:visible invisible absolute z-10 top-full right-0 w-64 text-black font-normal bg-white shadow-lg rounded-md p-2"
+            >
+              You can use Markdown syntax to format your text. Currently, it
+              only supports paragraphs, links and lists.
+            </div>
+          </div>
+        </div>
+        <textarea
+          id={id}
+          name={props.name}
+          ref={ref}
+          cols={2}
+          className="w-full resize-none border-none bg-gray-50 sm:text-sm"
+          onChange={(e) => props.onChange?.(e, e.currentTarget.value)}
+          value={props.value}
+          {...props.textareaProps}
+        />
+      </div>
     </FormControl>
   );
 };
@@ -259,13 +327,14 @@ const TextArea: React.FC<{
 const FormControl: React.FC<{
   id: string;
   label?: string;
+  containerProps?: JSX.IntrinsicElements["div"];
   children: React.ReactNode;
 }> = (props) => (
-  <div className="relative">
+  <div {...props.containerProps}>
     {props.label && (
       <label
         htmlFor={props.id}
-        className="peer block text-xs font-medium text-gray-700"
+        className="block text-xs font-medium text-gray-700"
       >
         {props.label}
       </label>
@@ -306,7 +375,7 @@ const SmallIconButton: React.FC<
   React.ButtonHTMLAttributes<HTMLButtonElement>
 > = (props) => (
   <button
-    className="relative inline-block p-2 text-gray-400 before:absolute before:left-1/2 before:top-1/2 before:-z-10 before:-translate-x-1/2 before:-translate-y-1/2 before:rounded-full hover:before:bg-gray-100 before:p-4 before:content-[''] hover:text-gray-600 focus:outline-none focus:ring"
+    className="relative inline-block p-1.5 text-gray-400 disabled:before:hidden before:absolute before:left-1/2 before:top-1/2 before:-z-10 before:-translate-x-1/2 before:-translate-y-1/2 before:rounded-full hover:before:bg-gray-100 before:p-3 before:content-[''] enabled:hover:text-gray-600 focus:outline-none focus:ring"
     type="button"
     {...props}
   />
@@ -370,7 +439,7 @@ const SectionInputGroup: React.FC<{ index: number; section: Section }> = (
   const [draft, setDraft] = useState("");
   const [editing, setEditing] = useState(false);
 
-  function onClickEditSection() {
+  function onClickRenameSection() {
     setEditing(true);
     setDraft(props.section.name);
   }
@@ -401,125 +470,125 @@ const SectionInputGroup: React.FC<{ index: number; section: Section }> = (
   }
 
   return (
-    <div className="relative flex flex-col gap-4 rounded-md p-4 pt-6 shadow">
-      <div key={props.index} className="flex flex-col gap-4">
-        <div className="group/heading flex gap-4">
-          {editing ? (
-            <>
-              <input
-                type="text"
-                className="mt-1 w-full rounded-md border-gray-200 shadow-sm sm:text-sm"
-                value={draft}
-                onChange={onSectionDraftChange}
-              />
-              <div className="flex gap-2">
-                <button
-                  key="save"
-                  className="inline-block text-gray-400 hover:text-gray-600 focus:outline-none focus:ring"
-                  type="button"
-                  onClick={saveSectionDraft}
-                >
-                  <span className="sr-only">Save</span>
-                  <CheckIcon className="h-5 w-5" />
-                </button>
-                <button
-                  key="cancel"
-                  className="inline-block text-gray-400 hover:text-red-600 focus:outline-none focus:ring focus:ring-red-200"
-                  type="button"
-                  onClick={cancelSectionDraft}
-                >
-                  <span className="sr-only">Cancel</span>
-                  <XMarkIcon className="h-5 w-5" />
-                </button>
-              </div>
-            </>
-          ) : (
-            <>
-              <div className="text-lg font-bold">{props.section.name}</div>
-              <div className="invisible flex gap-2 group-hover/heading:visible">
-                <button
-                  key="edit"
-                  className="inline-block rounded-full text-gray-400 hover:text-gray-600 focus:outline-none focus:ring"
-                  type="button"
-                  onClick={onClickEditSection}
-                >
-                  <span className="sr-only">Edit {props.section.name}</span>
-                  <PencilSquareIcon className="h-5 w-5" />
-                </button>
-                <button
-                  key="remove"
-                  className="inline-block text-gray-400 hover:text-red-600 focus:outline-none focus:ring focus:ring-red-200"
-                  type="button"
-                  onClick={onClickRemoveSection}
-                >
-                  <span className="sr-only">Remove {props.section.name}</span>
-                  <Trash24OutlineIcon className="h-5 w-5" />
-                </button>
-              </div>
-            </>
-          )}
-        </div>
-        {props.section.type === "simple" ? (
-          <TextArea
-            name={`sections-${props.index}-description`}
-            value={props.section.description}
-            onChange={onChange}
-          />
+    <div>
+      <div className="group/heading flex gap-4">
+        {editing ? (
+          <>
+            <input
+              type="text"
+              className="mt-1 w-full rounded-md border-gray-200 shadow-sm sm:text-sm"
+              value={draft}
+              onChange={onSectionDraftChange}
+            />
+            <div className="flex gap-2">
+              <button
+                key="save"
+                className="inline-block text-gray-400 hover:text-gray-600 focus:outline-none focus:ring"
+                type="button"
+                onClick={saveSectionDraft}
+              >
+                <span className="sr-only">Save</span>
+                <CheckIcon className="h-5 w-5" />
+              </button>
+              <button
+                key="cancel"
+                className="inline-block text-gray-400 hover:text-red-600 focus:outline-none focus:ring focus:ring-red-200"
+                type="button"
+                onClick={cancelSectionDraft}
+              >
+                <span className="sr-only">Cancel</span>
+                <XMarkIcon className="h-5 w-5" />
+              </button>
+            </div>
+          </>
         ) : (
           <>
-            <div className="divide-y">
-              {props.section.groups.map((group, groupIndex) => (
-                <div
-                  key={groupIndex}
-                  className="group/group relative flex flex-col gap-4 pb-4 pt-6"
-                >
-                  <div className="invisible absolute right-0 top-2 z-10 group-hover/group:visible">
-                    <SmallIconButton
-                      disabled={!canMoveUp(groupIndex)}
-                      onClick={() => moveUp(props.index, groupIndex)}
-                    >
-                      <span className="sr-only">Move up</span>
-                      <ArrowUpIcon className="w-4 h-4" />
-                    </SmallIconButton>
-                    <SmallIconButton
-                      disabled={!canMoveDown(groupIndex)}
-                      onClick={() => moveDown(props.index, groupIndex)}
-                    >
-                      <span className="sr-only">Move down</span>
-                      <ArrowDownIcon className="w-4 h-4" />
-                    </SmallIconButton>
-                    <SmallIconButton
-                      onClick={() =>
-                        removeSectionGroup(props.index, groupIndex)
-                      }
-                    >
-                      <span className="sr-only">
-                        Remove group {groupIndex + 1}
-                      </span>
-                      <Trash20Icon className="w-4 h-4" />
-                    </SmallIconButton>
-                  </div>
-                  <SimpleInput
-                    label="Title"
-                    name={`sections-${props.index}-groups-${groupIndex}-title`}
-                    value={group.title}
-                    onChange={onChange}
-                  />
-                  <TextArea
-                    label="Description"
-                    name={`sections-${props.index}-groups-${groupIndex}-description`}
-                    value={group.description}
-                    onChange={onChange}
-                  />
-                </div>
-              ))}
+            <div className="text-lg font-bold">{props.section.name}</div>
+            <div className="invisible flex gap-2 group-hover/heading:visible">
+              <button
+                className="inline-block rounded-full text-gray-400 hover:text-gray-600 focus:outline-none focus:ring"
+                type="button"
+                onClick={onClickRenameSection}
+                title="Rename"
+              >
+                <span className="sr-only">Edit {props.section.name}</span>
+                <PencilSquareIcon className="h-5 w-5" />
+              </button>
+              <button
+                className="inline-block text-gray-400 hover:text-red-600 focus:outline-none focus:ring focus:ring-red-200"
+                type="button"
+                onClick={onClickRemoveSection}
+                title="Remove"
+              >
+                <span className="sr-only">Remove {props.section.name}</span>
+                <Trash24OutlineIcon className="h-5 w-5" />
+              </button>
             </div>
-            <SimpleBorderButton onClick={() => addSectionGroup(props.index)}>
-              Add {props.section.name}
-            </SimpleBorderButton>
           </>
         )}
       </div>
+      {props.section.type === "simple" ? (
+        <TextArea
+          name={`sections-${props.index}-description`}
+          value={props.section.description}
+          onChange={onChange}
+          formControlProps={{ containerProps: { className: "pt-2" } }}
+        />
+      ) : (
+        <>
+          <div className="divide-y divide-dashed">
+            {props.section.groups.map((group, groupIndex) => (
+              <div
+                key={groupIndex}
+                className="group/group relative flex flex-col gap-4 pb-4 pt-6"
+              >
+                <div className="invisible absolute right-0 top-2 z-10 group-hover/group:visible">
+                  <SmallIconButton
+                    disabled={!canMoveUp(groupIndex)}
+                    onClick={() => moveUp(props.index, groupIndex)}
+                    title="Move up"
+                  >
+                    <span className="sr-only">Move up</span>
+                    <ArrowUpIcon className="w-4 h-4" />
+                  </SmallIconButton>
+                  <SmallIconButton
+                    disabled={!canMoveDown(groupIndex)}
+                    onClick={() => moveDown(props.index, groupIndex)}
+                    title="Move down"
+                  >
+                    <span className="sr-only">Move down</span>
+                    <ArrowDownIcon className="w-4 h-4" />
+                  </SmallIconButton>
+                  <SmallIconButton
+                    onClick={() => removeSectionGroup(props.index, groupIndex)}
+                    title="Remove"
+                  >
+                    <span className="sr-only">
+                      Remove group {groupIndex + 1}
+                    </span>
+                    <Trash20Icon className="w-4 h-4" />
+                  </SmallIconButton>
+                </div>
+                <SimpleInput
+                  label="Title"
+                  name={`sections-${props.index}-groups-${groupIndex}-title`}
+                  value={group.title}
+                  onChange={onChange}
+                />
+                <TextArea
+                  label="Description"
+                  name={`sections-${props.index}-groups-${groupIndex}-description`}
+                  value={group.description}
+                  onChange={onChange}
+                />
+              </div>
+            ))}
+          </div>
+          <SimpleBorderButton onClick={() => addSectionGroup(props.index)}>
+            Add {props.section.name}
+          </SimpleBorderButton>
+        </>
+      )}
     </div>
   );
 };
