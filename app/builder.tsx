@@ -30,6 +30,8 @@ import {
   TrashIcon as Trash20Icon,
   ArrowDownIcon,
   ArrowUpIcon,
+  ListBulletIcon,
+  LinkIcon,
 } from "@heroicons/react/20/solid";
 import {
   TrashIcon as Trash24OutlineIcon,
@@ -46,7 +48,7 @@ const DynamicPDFDownloadLink = dynamic(() => Promise.resolve(PDFDownloadLink), {
   ssr: false,
 });
 
-function autoResize(
+function resizeElement(
   targetContainer: HTMLElement,
   container: HTMLElement,
   content: HTMLElement
@@ -77,7 +79,7 @@ export default function Builder() {
     if (!pdfViewerTargetContainer.current) return;
     if (!pdfViewerContainer.current) return;
     if (!pdfViewer.current) return;
-    autoResize(
+    resizeElement(
       pdfViewerTargetContainer.current,
       pdfViewerContainer.current,
       pdfViewer.current
@@ -279,7 +281,7 @@ const SimpleInput: React.FC<{
         id={id}
         name={props.name}
         type="text"
-        className="mt-1 w-full rounded-md border-gray-200 bg-gray-50 sm:text-sm"
+        className="mt-1 w-full rounded-md border-none bg-gray-100 sm:text-sm"
         value={props.value}
         onChange={(e) => props.onChange?.(e, e.currentTarget.value)}
         {...props.inputProps}
@@ -298,16 +300,53 @@ const TextArea: React.FC<{
 }> = (props) => {
   const id = useId();
   const ref = useRef<HTMLTextAreaElement>(null);
+
   useAutosizeTextArea(ref.current, props.value as string);
+
+  function setValue(str: string) {
+    const nativeSetter = Object.getOwnPropertyDescriptor(
+      window.HTMLTextAreaElement.prototype,
+      "value"
+    )!.set!;
+    nativeSetter.call(ref.current!, str);
+    ref.current!.dispatchEvent(new Event("change", { bubbles: true }));
+  }
+
+  function addBulletedList() {
+    setValue(ref.current!.value + "\n\n- ");
+  }
+
+  function addLink() {
+    setValue(ref.current!.value + " [my website](https://example.com)");
+  }
+
   return (
     <FormControl id={id} label={props.label} {...props.formControlProps}>
-      <div className="mt-1 rounded-md border border-gray-200 bg-gray-50">
-        <div className="flex pt-1 px-2">
-          <div className="group/md relative select-none ml-auto text-sm text-gray-400 font-bold">
-            <span className="text-xs">MD</span>
+      <div className="mt-1 rounded-md bg-gray-100">
+        <div className="flex">
+          <div className="ml-2">
+            <button
+              className="p-1.5 hover:bg-gray-200"
+              title="Add a bulleted list"
+              onClick={addBulletedList}
+            >
+              <ListBulletIcon className="w-4 h-4" />
+            </button>
+            <button
+              className="p-1.5 hover:bg-gray-200"
+              title="Add a link"
+              onClick={addLink}
+            >
+              <LinkIcon className="w-4 h-4" />
+            </button>
+          </div>
+          <div className="group/md relative select-none ml-auto mt-0.5 mr-2 text-sm">
+            <span className="text-xs font-bold text-gray-400 tracking-wider">
+              MD
+            </span>
             <div
               role="tooltip"
-              className="group-hover/md:visible invisible absolute z-10 top-full right-0 w-64 text-black font-normal bg-white shadow-lg rounded-md p-2"
+              className="group-hover/md:visible invisible absolute z-10 top-full right-0 w-64 text-black bg-white shadow-lg rounded-md p-2"
             >
               You can use Markdown syntax to format your text. Currently, it
               only supports paragraphs, links and lists.
@@ -319,7 +358,7 @@ const TextArea: React.FC<{
           name={props.name}
           ref={ref}
           cols={2}
-          className="w-full resize-none border-none bg-gray-50 sm:text-sm"
+          className="w-full resize-none border-none bg-transparent sm:text-sm"
           onChange={(e) => props.onChange?.(e, e.currentTarget.value)}
           value={props.value}
           {...props.textareaProps}
@@ -830,7 +869,7 @@ const MarkdownResolver: React.FC<{ token: marked.Token }> = (props) => {
       return props.token.tokens.map((token2, idx) => {
         if (token2.type === "link") {
           return (
-            <Link key={idx} src={token2.href} style={{ display: "flex" }}>
+            <Link key={idx} src={token2.href}>
               {token2.text}
             </Link>
           );
