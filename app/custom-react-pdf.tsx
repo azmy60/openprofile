@@ -1,9 +1,9 @@
 "use client";
 
 import Frame from "react-frame-component";
-import dynamic from "next/dynamic";
 import { Font } from "@react-pdf/renderer";
 import { useEffect } from "react";
+import { Link as ReactPDFLink } from "@react-pdf/renderer";
 
 const SUPPRESSED_WARNINGS = ["DOCUMENT", "PAGE", "TEXT", "VIEW", "LINK"];
 
@@ -65,7 +65,7 @@ FONT_FAMILIES.forEach((font) => {
  * IFrame is used here for style isolation, since react pdf uses pt unit.
  * It creates a sandbox document body that uses A4 size as width.
  */
-const CustomPDFViewer: React.FC<
+export const CustomPDFViewer: React.FC<
   React.ComponentProps<typeof Frame> & {
     iframeRef: React.ComponentProps<typeof Frame>["ref"];
   }
@@ -96,10 +96,7 @@ const CustomPDFViewer: React.FC<
   );
 };
 
-// Iframe can't be server side rendered, so we use dynamic import to load it only on client side
-export const CustomDynamicPDFViewer = dynamic(
-  () => Promise.resolve(CustomPDFViewer),
-  {
-    ssr: false,
-  }
-);
+// Chrome user agent stylesheet would hide this Link element with display: none
+export const Link: React.FC<React.ComponentProps<typeof ReactPDFLink>> = (
+  props
+) => <ReactPDFLink {...props} style={{ display: "flex", ...props.style }} />;
