@@ -19,7 +19,7 @@ import ReactPDF, {
   usePDF,
 } from "@react-pdf/renderer";
 import { marked } from "marked";
-import { atom, useAtom, useAtomValue } from "jotai";
+import { atom, useAtom, useAtomValue, useSetAtom } from "jotai";
 import { atomWithStorage } from "jotai/utils";
 import { produce } from "immer";
 import dynamic from "next/dynamic";
@@ -155,7 +155,10 @@ export default function Builder() {
           ref={viewerTargetContainer}
         >
           <div className="mx-auto shadow" ref={viewerContainer}>
-            <DynamicCustomPDFViewer iframeRef={viewer} className="origin-top-left">
+            <DynamicCustomPDFViewer
+              iframeRef={viewer}
+              className="origin-top-left"
+            >
               <Doc usingCustomPDFViewer />
             </DynamicCustomPDFViewer>
           </div>
@@ -252,7 +255,9 @@ const WelcomeCard: React.FC = () => {
   );
 };
 
-const DynamicBottomBar = dynamic(() => Promise.resolve(BottomBar), { ssr: false });
+const DynamicBottomBar = dynamic(() => Promise.resolve(BottomBar), {
+  ssr: false,
+});
 
 const BottomBar: React.FC = () => {
   const [openMenu, setOpenMenu] = useState(false);
@@ -831,7 +836,7 @@ const MarkdownResolver: React.FC<{ token: marked.Token }> = (props) => {
 };
 
 function useContent() {
-  const [content, setContent] = useAtom(contentAtom);
+  const setContent = useSetAtom(contentAtom);
 
   function onChange(e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) {
     setContent(
@@ -843,7 +848,7 @@ function useContent() {
 
   function addSection() {
     setContent(
-      produce((draft: typeof content) => {
+      produce((draft: Content) => {
         draft.sections.push(buildDetailedSection());
       })
     );
@@ -851,7 +856,7 @@ function useContent() {
 
   function removeSection(sectionIndex: number) {
     setContent(
-      produce((draft: typeof content) => {
+      produce((draft: Content) => {
         draft.sections.splice(sectionIndex, 1);
       })
     );
@@ -859,7 +864,7 @@ function useContent() {
 
   function editSectionName(sectionIndex: number, name: string) {
     setContent(
-      produce((draft: typeof content) => {
+      produce((draft: Content) => {
         draft.sections[sectionIndex].name = name;
       })
     );
@@ -867,7 +872,7 @@ function useContent() {
 
   function addSectionGroup(sectionIndex: number) {
     setContent(
-      produce((draft: typeof content) => {
+      produce((draft: Content) => {
         (draft.sections[sectionIndex] as DetailedSection).groups.push(
           buildGroup()
         );
@@ -877,7 +882,7 @@ function useContent() {
 
   function removeSectionGroup(sectionIndex: number, groupIndex: number) {
     setContent(
-      produce((draft: typeof content) => {
+      produce((draft: Content) => {
         (draft.sections[sectionIndex] as DetailedSection).groups.splice(
           groupIndex,
           1
@@ -888,7 +893,7 @@ function useContent() {
 
   function move(sectionIndex: number, groupIndex: number, targetIndex: number) {
     setContent(
-      produce((draft: typeof content) => {
+      produce((draft: Content) => {
         moveArrayElement(
           (draft.sections[sectionIndex] as DetailedSection).groups,
           groupIndex,
@@ -918,7 +923,7 @@ function useContent() {
   };
 }
 
-const contentAtom = atomWithStorage<{
+interface Content {
   welcome: boolean;
   name: string;
   email: string;
@@ -928,7 +933,9 @@ const contentAtom = atomWithStorage<{
   link2: string;
   link3: string;
   sections: Section[];
-}>("openprofile-content", {
+}
+
+const contentAtom = atomWithStorage<Content>("openprofile-content", {
   welcome: true,
   name: "John Doe",
   location: "Cupertino, California, United States",
