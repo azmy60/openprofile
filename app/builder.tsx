@@ -8,13 +8,14 @@ import {
   useRef,
   useState,
 } from "react";
-import { Link, CustomPDFViewer } from "./custom-react-pdf";
 import ReactPDF, {
   Document,
   Page,
   Text,
   View,
+  Link,
   Svg,
+  Font,
   Path,
   usePDF,
 } from "@react-pdf/renderer";
@@ -40,6 +41,8 @@ import {
   PlusSmallIcon,
   EllipsisVerticalIcon,
   ArrowUpOnSquareIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
 } from "@heroicons/react/24/outline";
 import { moveArrayElement, setValueByPath, useClickAway } from "./helpers";
 import {
@@ -53,10 +56,13 @@ import {
 } from "./icons";
 import {
   SimpleBorderButton,
+  SimpleButton,
   SimpleInput,
   SmallIconButton,
   TextArea,
 } from "./ui";
+import Script from "next/script";
+import pdfjs, { type PDFDocumentProxy, type PDFPageProxy } from "pdfjs-dist";
 
 interface SimpleSection {
   type: "simple";
@@ -77,17 +83,11 @@ interface Group {
   description: string;
 }
 
-// Iframe can't be server side rendered, so we use dynamic import to load it only on client side
-export const DynamicCustomPDFViewer = dynamic(
-  () => Promise.resolve(CustomPDFViewer),
-  { ssr: false }
-);
+declare var pdfjsLib: typeof pdfjs;
 
 export default function Builder() {
   const content = useAtomValue(contentAtom);
   const { onChange, addSection } = useContent();
-  const { viewerTargetContainer, viewerContainer, viewer } =
-    useAutoResizeViewer();
 
   return (
     <div className="relative min-h-0 flex w-full overflow-y-scroll">
@@ -149,22 +149,7 @@ export default function Builder() {
         </SimpleBorderButton>
         <div className="pt-[1px] -mt-6" />
       </div>
-      <div className="sticky left-1/2 top-0 w-1/2 h-full px-4 py-4 bg-gray-300 flex flex-col">
-        <div
-          className="grow h-[calc(100%_-_2.5rem)] pb-4"
-          ref={viewerTargetContainer}
-        >
-          <div className="mx-auto shadow" ref={viewerContainer}>
-            <DynamicCustomPDFViewer
-              iframeRef={viewer}
-              className="origin-top-left"
-            >
-              <Doc usingCustomPDFViewer />
-            </DynamicCustomPDFViewer>
-          </div>
-        </div>
-        <DynamicBottomBar />
-      </div>
+      <DynamicViewerArea />
     </div>
   );
 }
@@ -255,56 +240,144 @@ const WelcomeCard: React.FC = () => {
   );
 };
 
-const DynamicBottomBar = dynamic(() => Promise.resolve(BottomBar), {
+const DynamicViewerArea = dynamic(() => Promise.resolve(ViewerArea), {
   ssr: false,
 });
 
-const BottomBar: React.FC = () => {
-  const [openMenu, setOpenMenu] = useState(false);
+let pageNumIsPending = -1;
+
+const ViewerArea: React.FC = () => {
   const [instance] = usePDF({ document: <Doc /> });
+  const [currentPage, setCurrentPage] = useState(1);
+  const [openMenu, setOpenMenu] = useState(false);
+  const [pageIsRendering, setPageIsRendering] = useState(false);
+  const [pdfDoc, setPdfDoc] = useState<null | PDFDocumentProxy>(null);
+
+  const canvas = useRef<HTMLCanvasElement>(null);
   const menu = useRef<HTMLDivElement>(null);
+
+  const pageCount = pdfDoc?.numPages || "-";
+
   useClickAway(menu, () => setOpenMenu(false));
 
-  return (
-    <div className="h-10 flex gap-2">
-      <a
-        href={instance.url!}
-        className="h-full w-full inline-flex items-center justify-center rounded border border-indigo-600 bg-indigo-600 px-12 text-sm font-medium text-white hover:bg-transparent hover:text-indigo-600 focus:outline-none focus:ring active:text-indigo-500"
-        download="resume.pdf"
-      >
-        Download as PDF
-      </a>
-      <div className="relative" ref={menu}>
-        <button
-          className="flex items-center justify-center rounded-md h-full w-10 border border-indigo-600 text-indigo-600 hover:bg-indigo-600 hover:text-white focus:outline-none focus:ring active:bg-indigo-500"
-          onClick={() => setOpenMenu((b) => !b)}
-        >
-          <span className="sr-only">Menu</span>
-          <EllipsisVerticalIcon className="h-6 w-6" />
-        </button>
+  useEffect(() => {
+    if (instance.url) updatePdfDoc();
 
-        {openMenu && (
-          <div
-            className="absolute end-0 bottom-full mb-2 z-10 w-56 rounded-md border border-gray-100 bg-white shadow-lg"
-            role="menu"
-          >
-            <div className="p-2">
-              <a
-                href={instance.url!}
-                target="_blank"
-                className="flex gap-2 items-center rounded-lg px-4 py-2 text-sm text-gray-500 hover:bg-gray-50 hover:text-gray-700"
-                role="menuitem"
-              >
-                <ArrowUpOnSquareIcon className="h-5 w-5" />
-                Preview in new tab
-              </a>
-            </div>
-          </div>
-        )}
+    async function updatePdfDoc() {
+      try {
+        const _pdfDoc = await pdfjsLib.getDocument(instance.url!).promise;
+        setPdfDoc(_pdfDoc);
+        const page = await _pdfDoc.getPage(currentPage);
+        renderPDFPage(page, canvas.current!);
+      } catch (e) {}
+    }
+  }, [instance.url]);
+
+  async function goToPage(num: number) {
+    setCurrentPage(num);
+    if (pageIsRendering) pageNumIsPending = num;
+    else renderPage(num);
+  }
+
+  async function renderPage(num: number) {
+    try {
+      setPageIsRendering(true);
+      const page = await pdfDoc!.getPage(num);
+      await renderPDFPage(page, canvas.current!);
+    } finally {
+      setPageIsRendering(false);
+    }
+
+    if (pageNumIsPending !== -1) {
+      renderPage(pageNumIsPending);
+      pageNumIsPending = -1;
+    }
+  }
+
+  return (
+    <div className="sticky left-1/2 top-0 w-1/2 h-full px-4 py-4 bg-gray-300 flex flex-col gap-4">
+      <div className="pdf-viewer relative self-start min-h-0 mx-auto">
+        <canvas ref={canvas} className="h-full object-contain" />
+        <div className="absolute inset-0" />
       </div>
+      <div className="flex gap-2">
+        <button
+          disabled={currentPage === 1}
+          onClick={() => goToPage(currentPage - 1)}
+        >
+          <ChevronLeftIcon className="w-6 h-6" />
+        </button>
+        <span className="flex items-center">
+          {currentPage} / {pageCount}
+        </span>
+        <button
+          disabled={currentPage === pageCount}
+          onClick={() => goToPage(currentPage + 1)}
+        >
+          <ChevronRightIcon className="w-6 h-6" />
+        </button>
+        <SimpleButton
+          onClick={() => downloadAsPDF(instance.url!)}
+          className="ml-auto "
+        >
+          Download as PDF
+        </SimpleButton>
+        <div className="relative aspect-square" ref={menu}>
+          <button
+            className="flex items-center justify-center rounded h-full w-full border border-indigo-600 bg-indigo-600 text-white hover:bg-indigo-600 hover:text-white focus:outline-none focus:ring active:bg-indigo-500"
+            onClick={() => setOpenMenu((b) => !b)}
+          >
+            <span className="sr-only">Menu</span>
+            <EllipsisVerticalIcon className="h-6 w-6" />
+          </button>
+
+          {openMenu && (
+            <div
+              className="absolute end-0 bottom-full mb-2 z-10 w-56 rounded-md border border-gray-100 bg-white shadow-lg"
+              role="menu"
+            >
+              <div className="p-2">
+                <a
+                  href={instance.url!}
+                  target="_blank"
+                  className="flex gap-2 items-center rounded-lg px-4 py-2 text-sm text-gray-500 hover:bg-gray-50 hover:text-gray-700"
+                  role="menuitem"
+                >
+                  <ArrowUpOnSquareIcon className="h-5 w-5" />
+                  Open PDF in new tab
+                </a>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+      <Script
+        src="/pdfjs-dist/build/pdf.js"
+        onLoad={() => {
+          pdfjsLib.GlobalWorkerOptions.workerSrc =
+            "/pdfjs-dist/build/pdf.worker.js";
+        }}
+      />
     </div>
   );
 };
+
+async function renderPDFPage(page: PDFPageProxy, canvas: HTMLCanvasElement) {
+  const viewport = page.getViewport({ scale: 2 });
+  canvas.height = viewport.height;
+  canvas.width = viewport.width;
+  return page.render({
+    canvasContext: canvas.getContext("2d")!,
+    viewport,
+  });
+}
+
+function downloadAsPDF(url: string) {
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "resume.pdf";
+  a.click();
+}
 
 const SectionInputGroup: React.FC<{ index: number; section: Section }> = (
   props
@@ -367,7 +440,7 @@ const SectionInputGroup: React.FC<{ index: number; section: Section }> = (
           <div className="flex gap-4 w-full" ref={editingNameArea}>
             <input
               type="text"
-              className="mt-1 w-full rounded-md border-gray-200 shadow-sm sm:text-sm"
+              className="mt-1 w-full rounded-md border-gray-200 sm:text-sm"
               value={draft}
               onChange={onSectionDraftChange}
               onKeyUp={onSectionKeyUp}
@@ -976,63 +1049,6 @@ const welcomeAtom = atom(
   }
 );
 
-function useAutoResizeViewer() {
-  const targetContainerRef = useRef<HTMLElement | null>(null);
-  const containerRef = useRef<HTMLElement | null>(null);
-  const viewerRef = useRef<HTMLElement | null>(null);
-  const observer = useRef<ResizeObserver | null>(null);
-
-  function observe() {
-    if (
-      !targetContainerRef.current ||
-      !containerRef.current ||
-      !viewerRef.current
-    ) {
-      return;
-    }
-
-    observer.current = new ResizeObserver((entries) => {
-      entries.forEach((entry) => {
-        const contentBoxSize = entry.contentBoxSize[0];
-        const mainStyle = getComputedStyle(viewerRef.current!);
-        const mainInlineSize = parseFloat(mainStyle.inlineSize);
-        const mainBlockSize = parseFloat(mainStyle.blockSize);
-
-        const ratio = contentBoxSize.blockSize / mainBlockSize;
-        const containerWidth = mainInlineSize * ratio;
-        const containerHeight = mainBlockSize * ratio;
-
-        viewerRef.current!.style.transform = `scale(${ratio})`;
-        containerRef.current!.style.width = `${containerWidth}px`;
-        containerRef.current!.style.height = `${containerHeight}px`;
-      });
-    });
-
-    observer.current.observe(targetContainerRef.current!);
-  }
-
-  useEffect(() => {
-    return () => observer.current?.disconnect();
-  }, []);
-
-  function viewerTargetContainer(el: HTMLDivElement) {
-    targetContainerRef.current = el;
-    observe();
-  }
-
-  function viewerContainer(el: HTMLDivElement) {
-    containerRef.current = el;
-    observe();
-  }
-
-  function viewer(el: HTMLIFrameElement) {
-    viewerRef.current = el;
-    observe();
-  }
-
-  return { viewerTargetContainer, viewerContainer, viewer };
-}
-
 function buildDetailedSection(
   name: string = "Untitled section",
   groups: Group[] = [buildGroup()]
@@ -1050,3 +1066,18 @@ function buildSimpleSection(
 function buildGroup(): Group {
   return { title: "", description: "" };
 }
+
+const FONT_FAMILIES = ["Inter"];
+
+FONT_FAMILIES.forEach((font) => {
+  Font.register({
+    family: font,
+    src: `/fonts/${font}/${font}-Regular.ttf`,
+    fontWeight: "normal",
+  });
+  Font.register({
+    family: font,
+    src: `/fonts/${font}/${font}-Bold.ttf`,
+    fontWeight: "bold",
+  });
+});
