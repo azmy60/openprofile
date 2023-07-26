@@ -150,6 +150,7 @@ const WelcomeCard: React.FC = () => {
 
 const ProfileInputCollection: React.FC = () => {
   const content = useAtomValue(contentAtom);
+  const setPhoto = useSetAtom(setPhotoAtom);
   const { onChange } = useContent();
   return (
     <div>
@@ -181,6 +182,7 @@ const ProfileInputCollection: React.FC = () => {
         />
         <SimpleInput
           label="Email"
+          type="email"
           name="email"
           value={content.email}
           onChange={onChange}
@@ -203,6 +205,26 @@ const ProfileInputCollection: React.FC = () => {
           value={content.link3}
           onChange={onChange}
         />
+        {content.photo ? (
+          <button
+            className="text-indigo-600 font-bold text-sm justify-self-start hover:underline"
+            onClick={() => setPhoto("")}
+          >
+            Remove photo
+          </button>
+        ) : (
+          <SimpleInput
+            label="Photo"
+            type="file"
+            name="photo"
+            onChange={onChange}
+            inputProps={{
+              accept: "image/*",
+              className:
+                "mt-1 text-sm file:mr-4 file:py-1 file:px-2 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-gray-50 file:text-gray-700 hover:file:bg-gray-100",
+            }}
+          />
+        )}
       </div>
     </div>
   );
@@ -618,12 +640,23 @@ const ChipInput: React.FC<{
 function useContent() {
   const setContent = useSetAtom(contentAtom);
 
+  function setContentByPath(path: string, value: any) {
+    setContent(produce((draft) => setValueByPath(draft, path, value)));
+  }
+
   function onChange(e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) {
-    setContent(
-      produce((draft) =>
-        setValueByPath(draft, e.currentTarget.name, e.currentTarget.value)
-      )
-    );
+    const target = e.currentTarget;
+    if (target.name === "photo") {
+      const files = (target as HTMLInputElement).files;
+      if (!files) return;
+      const reader = new FileReader();
+      reader.addEventListener("load", () =>
+        setContentByPath(target.name, reader.result)
+      );
+      reader.readAsDataURL(files[0]);
+    } else {
+      setContentByPath(target.name, target.value);
+    }
   }
 
   function addSection() {
@@ -740,6 +773,7 @@ interface Group {
 
 export interface Content {
   welcome: boolean;
+  photo: string;
   name: string;
   jobTitle: string;
   email: string;
@@ -753,6 +787,7 @@ export interface Content {
 
 const contentAtom = atomWithStorage<Content>("openprofile-content", {
   welcome: true,
+  photo: "",
   name: "John Doe",
   jobTitle: "Software Engineer",
   location: "Cupertino, California, United States",
@@ -799,6 +834,10 @@ const welcomeAtom = atom(
 );
 
 const sectionsAtom = atom((get) => get(contentAtom).sections);
+
+const setPhotoAtom = atom(null, (get, set, photo: string) =>
+  set(contentAtom, { ...get(contentAtom), photo })
+);
 
 function buildDetailedSection(
   name: string = "Untitled section",

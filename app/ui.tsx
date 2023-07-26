@@ -2,10 +2,12 @@
 
 import { ChangeEvent, useEffect, useId, useRef } from "react";
 import { ListBulletIcon, LinkIcon } from "@heroicons/react/20/solid";
+import { twMerge } from "tailwind-merge";
 
 export const SimpleInput: React.FC<{
   name?: string;
   label?: string;
+  type?: React.HTMLProps<HTMLInputElement>["type"];
   inputProps?: React.HTMLProps<HTMLInputElement>;
   value?: React.HTMLProps<HTMLInputElement>["value"];
   onChange?: (e: ChangeEvent<HTMLInputElement>, value: string) => void;
@@ -16,8 +18,11 @@ export const SimpleInput: React.FC<{
       <input
         id={id}
         name={props.name}
-        type="text"
-        className="w-full rounded-md border-none bg-gray-100 py-2.5 sm:text-sm"
+        type={props.type || "text"}
+        className={twMerge(
+          "w-full rounded-md border-none bg-gray-100 py-2.5 sm:text-sm",
+          props.inputProps?.className
+        )}
         value={props.value}
         onChange={(e) => props.onChange?.(e, e.currentTarget.value)}
         {...props.inputProps}
@@ -143,7 +148,10 @@ export const SimpleButton: React.FC<
   React.ButtonHTMLAttributes<HTMLButtonElement>
 > = ({ className, ...props }) => (
   <button
-    className={`inline-block rounded border border-indigo-600 bg-indigo-600 px-12 py-3 text-sm font-medium text-white hover:bg-transparent hover:text-indigo-600 focus:outline-none focus:ring active:text-indigo-500 ${className}`}
+    className={twMerge(
+      "inline-block rounded border border-indigo-600 bg-indigo-600 px-12 py-3 text-sm font-medium text-white hover:bg-transparent hover:text-indigo-600 focus:outline-none focus:ring active:text-indigo-500",
+      className
+    )}
     type="button"
     {...props}
   />
@@ -151,9 +159,12 @@ export const SimpleButton: React.FC<
 
 export const SimpleBorderButton: React.FC<
   React.ButtonHTMLAttributes<HTMLButtonElement>
-> = (props) => (
+> = ({ className, ...props }) => (
   <button
-    className="inline-block w-full rounded border border-indigo-600 px-12 py-2 text-sm font-medium text-indigo-600 hover:bg-indigo-600 hover:text-white focus:outline-none focus:ring active:bg-indigo-500"
+    className={twMerge(
+      "inline-block rounded border border-indigo-600 px-12 py-2 text-sm font-medium text-indigo-600 hover:bg-indigo-600 hover:text-white focus:outline-none focus:ring active:bg-indigo-500",
+      className
+    )}
     type="button"
     {...props}
   />
@@ -161,9 +172,12 @@ export const SimpleBorderButton: React.FC<
 
 export const SmallIconButton: React.FC<
   React.ButtonHTMLAttributes<HTMLButtonElement>
-> = (props) => (
+> = ({ className, ...props }) => (
   <button
-    className="relative inline-block p-1.5 text-gray-400 disabled:before:hidden before:absolute before:left-1/2 before:top-1/2 before:-z-10 before:-translate-x-1/2 before:-translate-y-1/2 before:rounded-full hover:before:bg-gray-100 before:p-3 before:content-[''] enabled:hover:text-gray-600 focus:outline-none focus:ring"
+    className={twMerge(
+      "relative inline-block p-1.5 text-gray-400 disabled:before:hidden before:absolute before:left-1/2 before:top-1/2 before:-z-10 before:-translate-x-1/2 before:-translate-y-1/2 before:rounded-full hover:before:bg-gray-100 before:p-3 before:content-[''] enabled:hover:text-gray-600 focus:outline-none focus:ring",
+      className
+    )}
     type="button"
     {...props}
   />

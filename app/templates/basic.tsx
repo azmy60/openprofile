@@ -1,4 +1,4 @@
-import { Document, Page, Text, View } from "@react-pdf/renderer";
+import { Document, Image, Page, Text, View } from "@react-pdf/renderer";
 import { PDFEnvelopeIcon, PDFMapPinIcon, PDFPhoneIcon } from "../icons";
 import { MarkdownView, IconLinkResolver, Link } from "../pdf-ui";
 import { useContentValue } from "../builder";
@@ -7,8 +7,18 @@ const PRIMARY = "#4f46e5";
 const BORDER = "#dde5f7";
 
 const Basic: React.FC = () => {
-  const { name, jobTitle, email, tel, location, link, link2, link3, sections } =
-    useContentValue();
+  const {
+    name,
+    jobTitle,
+    email,
+    tel,
+    location,
+    link,
+    link2,
+    link3,
+    sections,
+    photo,
+  } = useContentValue();
   return (
     <Document>
       <Page
@@ -32,137 +42,168 @@ const Basic: React.FC = () => {
           <View
             style={{
               display: "flex",
-              flexDirection: "column",
+              flexDirection: "row",
               marginBottom: 16,
             }}
           >
-            <Text
+            <View
               style={{
-                fontWeight: "bold",
-                fontSize: "21pt",
-                paddingBottom: "4pt",
+                display: "flex",
+                flexDirection: "column",
+                flexGrow: 1,
               }}
             >
-              {name}
-            </Text>
-            <Text
-              style={{
-                fontWeight: "bold",
-                paddingBottom: "12pt",
-              }}
-            >
-              {jobTitle}
-            </Text>
-            <View style={{ display: "flex", flexDirection: "row", gap: 24 }}>
-              <View
-                style={{ display: "flex", flexDirection: "column", gap: "6pt" }}
+              <Text
+                style={{
+                  fontWeight: "bold",
+                  fontSize: "21pt",
+                  paddingBottom: "4pt",
+                }}
               >
-                {!!location && (
-                  <View
-                    style={{
-                      display: "flex",
-                      flexDirection: "row",
-                      gap: "4pt",
-                    }}
-                  >
-                    <PDFMapPinIcon
-                      style={{ width: "12pt", height: "12pt" }}
-                      // @ts-expect-error
-                      stroke={PRIMARY}
-                    />
-                    <Text>{location}</Text>
-                  </View>
-                )}
-                {!!email && (
-                  <View
-                    style={{
-                      display: "flex",
-                      flexDirection: "row",
-                      gap: "4pt",
-                    }}
-                  >
-                    <PDFEnvelopeIcon
-                      style={{ width: "12pt", height: "12pt" }}
-                      // @ts-expect-error
-                      stroke={PRIMARY}
-                    />
-                    <Link src={`mailto:${email}`}>{email}</Link>
-                  </View>
-                )}
-              </View>
-              <View
-                style={{ display: "flex", flexDirection: "column", gap: "6pt" }}
+                {name}
+              </Text>
+              <Text
+                style={{
+                  fontWeight: "bold",
+                  paddingBottom: "12pt",
+                }}
               >
-                {!!tel && (
-                  <View
-                    style={{
-                      display: "flex",
-                      flexDirection: "row",
-                      gap: "4pt",
-                    }}
-                  >
-                    <PDFPhoneIcon
-                      style={{ width: "12pt", height: "12pt" }}
-                      // @ts-expect-error
-                      stroke={PRIMARY}
-                    />
-                    <Text>{tel}</Text>
-                  </View>
-                )}
-                {!!link && (
-                  <View
-                    style={{
-                      display: "flex",
-                      flexDirection: "row",
-                      gap: "4pt",
-                    }}
-                  >
-                    <IconLinkResolver
-                      url={link}
-                      style={{ width: "12pt", height: "12pt" }}
-                      color={PRIMARY}
-                    />
-                    <Link src={link}>{link}</Link>
-                  </View>
-                )}
-              </View>
-              <View
-                style={{ display: "flex", flexDirection: "column", gap: "6pt" }}
-              >
-                {!!link2 && (
-                  <View
-                    style={{
-                      display: "flex",
-                      flexDirection: "row",
-                      gap: "4pt",
-                    }}
-                  >
-                    <IconLinkResolver
-                      url={link2}
-                      style={{ width: "12pt", height: "12pt" }}
-                      color={PRIMARY}
-                    />
-                    <Link src={link2}>{link2}</Link>
-                  </View>
-                )}
-                {!!link3 && (
-                  <View
-                    style={{
-                      display: "flex",
-                      flexDirection: "row",
-                      gap: "4pt",
-                    }}
-                  >
-                    <IconLinkResolver
-                      url={link3}
-                      style={{ width: "12pt", height: "12pt" }}
-                      color={PRIMARY}
-                    />
-                    <Link src={link3}>{link3}</Link>
-                  </View>
-                )}
+                {jobTitle}
+              </Text>
+              <View style={{ display: "flex", flexDirection: "row", gap: 24 }}>
+                <View
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "6pt",
+                  }}
+                >
+                  {!!location && (
+                    <View
+                      style={{
+                        display: "flex",
+                        flexDirection: "row",
+                        gap: "4pt",
+                      }}
+                    >
+                      <PDFMapPinIcon
+                        style={{ width: "12pt", height: "12pt" }}
+                        // @ts-expect-error
+                        stroke={PRIMARY}
+                      />
+                      <Text>{location}</Text>
+                    </View>
+                  )}
+                  {!!email && (
+                    <View
+                      style={{
+                        display: "flex",
+                        flexDirection: "row",
+                        gap: "4pt",
+                      }}
+                    >
+                      <PDFEnvelopeIcon
+                        style={{ width: "12pt", height: "12pt" }}
+                        // @ts-expect-error
+                        stroke={PRIMARY}
+                      />
+                      <Link src={`mailto:${email}`}>{email}</Link>
+                    </View>
+                  )}
+                </View>
+                <View
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "6pt",
+                  }}
+                >
+                  {!!tel && (
+                    <View
+                      style={{
+                        display: "flex",
+                        flexDirection: "row",
+                        gap: "4pt",
+                      }}
+                    >
+                      <PDFPhoneIcon
+                        style={{ width: "12pt", height: "12pt" }}
+                        // @ts-expect-error
+                        stroke={PRIMARY}
+                      />
+                      <Text>{tel}</Text>
+                    </View>
+                  )}
+                  {!!link && (
+                    <View
+                      style={{
+                        display: "flex",
+                        flexDirection: "row",
+                        gap: "4pt",
+                      }}
+                    >
+                      <IconLinkResolver
+                        url={link}
+                        style={{ width: "12pt", height: "12pt" }}
+                        color={PRIMARY}
+                      />
+                      <Link src={link}>{link}</Link>
+                    </View>
+                  )}
+                </View>
+                <View
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "6pt",
+                  }}
+                >
+                  {!!link2 && (
+                    <View
+                      style={{
+                        display: "flex",
+                        flexDirection: "row",
+                        gap: "4pt",
+                      }}
+                    >
+                      <IconLinkResolver
+                        url={link2}
+                        style={{ width: "12pt", height: "12pt" }}
+                        color={PRIMARY}
+                      />
+                      <Link src={link2}>{link2}</Link>
+                    </View>
+                  )}
+                  {!!link3 && (
+                    <View
+                      style={{
+                        display: "flex",
+                        flexDirection: "row",
+                        gap: "4pt",
+                      }}
+                    >
+                      <IconLinkResolver
+                        url={link3}
+                        style={{ width: "12pt", height: "12pt" }}
+                        color={PRIMARY}
+                      />
+                      <Link src={link3}>{link3}</Link>
+                    </View>
+                  )}
+                </View>
               </View>
             </View>
+            {photo && (
+              <Image
+                src={photo}
+                style={{
+                  width: "64pt",
+                  height: "64pt",
+                  objectFit: "cover",
+                  borderRadius: "32pt",
+                }}
+              />
+            )}
           </View>
           {sections.map((section, sectionIndex) => (
             <View
@@ -210,7 +251,7 @@ const Basic: React.FC = () => {
                     display: "flex",
                     flexDirection: "row",
                     flexWrap: "wrap",
-                    gap: '8pt',
+                    gap: "8pt",
                   }}
                 >
                   {section.chips.map((chip, index) => (
