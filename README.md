@@ -1,13 +1,10 @@
 # OpenProfile
 
-Flexible, open-source resume builder with markdown support ✨.
+Open-source resume builder with markdown support :tada: made with simplicity in mind ✨.
 
 ## Development
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
 ```
