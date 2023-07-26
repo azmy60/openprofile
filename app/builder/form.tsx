@@ -42,7 +42,7 @@ const Form: React.FC = () => {
         <SimpleBorderButton onClick={() => addSection("simple")}>
           Simple
         </SimpleBorderButton>
-        <SimpleBorderButton onClick={() => addSection("detailed")}>
+        <SimpleBorderButton onClick={() => addSection("grouped")}>
           Grouped
         </SimpleBorderButton>
         <SimpleBorderButton onClick={() => addSection("chip")}>
