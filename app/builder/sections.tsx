@@ -21,19 +21,19 @@ import { SimpleButton, SimpleInput, SmallIconButton, TextArea } from "../ui";
 import { sectionsAtom } from "../builder/state";
 
 interface SimpleSection {
-  type: "simple";
+  type: SimpleSectionType;
   name: string;
   description: string;
 }
 
-interface DetailedSection {
-  type: "detailed";
+interface GroupedSection {
+  type: GroupedSectionType;
   name: string;
   groups: Group[];
 }
 
 interface ChipSection {
-  type: "chip";
+  type: ChipSectionType;
   name: string;
   chips: string[];
 }
@@ -43,13 +43,24 @@ interface Group {
   description: string;
 }
 
-export type Section = SimpleSection | DetailedSection | ChipSection;
+export type Section = SimpleSection | GroupedSection | ChipSection;
 
-export function buildDetailedSection(
+export type SectionType =
+  | SimpleSectionType
+  | GroupedSectionType
+  | ChipSectionType;
+
+type SimpleSectionType = "simple";
+
+type GroupedSectionType = "grouped";
+
+type ChipSectionType = "chip";
+
+export function buildGroupedSection(
   name: string = "Untitled section",
   groups: Group[] = [buildGroup()]
-): DetailedSection {
-  return { type: "detailed", name, groups };
+): GroupedSection {
+  return { type: "grouped", name, groups };
 }
 
 export function buildSimpleSection(
@@ -201,7 +212,7 @@ const SectionInput: React.FC<{ index: number; section: Section }> = (props) => {
   function addGroup() {
     setSections(
       produce((draft) => {
-        (draft[props.index] as DetailedSection).groups.push(buildGroup());
+        (draft[props.index] as GroupedSection).groups.push(buildGroup());
       })
     );
   }
@@ -209,7 +220,7 @@ const SectionInput: React.FC<{ index: number; section: Section }> = (props) => {
   function removeGroup(groupIndex: number) {
     setSections(
       produce((draft) => {
-        (draft[props.index] as DetailedSection).groups.splice(groupIndex, 1);
+        (draft[props.index] as GroupedSection).groups.splice(groupIndex, 1);
       })
     );
   }
@@ -218,7 +229,7 @@ const SectionInput: React.FC<{ index: number; section: Section }> = (props) => {
     setSections(
       produce((draft) => {
         moveArrayElement(
-          (draft[props.index] as DetailedSection).groups,
+          (draft[props.index] as GroupedSection).groups,
           groupIndex,
           targetIndex
         );
@@ -253,7 +264,7 @@ const SectionInput: React.FC<{ index: number; section: Section }> = (props) => {
   function updateGroupTitle(index: number, value: string) {
     setSections(
       produce((draft) => {
-        (draft[props.index] as DetailedSection).groups[index].title = value;
+        (draft[props.index] as GroupedSection).groups[index].title = value;
       })
     );
   }
@@ -261,7 +272,7 @@ const SectionInput: React.FC<{ index: number; section: Section }> = (props) => {
   function updateGroupDescription(index: number, value: string) {
     setSections(
       produce((draft) => {
-        (draft[props.index] as DetailedSection).groups[index].description =
+        (draft[props.index] as GroupedSection).groups[index].description =
           value;
       })
     );
@@ -276,7 +287,7 @@ const SectionInput: React.FC<{ index: number; section: Section }> = (props) => {
     );
   }
 
-  if (props.section.type === "detailed") {
+  if (props.section.type === "grouped") {
     return (
       <DetailedSectionInput
         section={props.section}
@@ -310,7 +321,7 @@ const SimpleSectionInput: React.FC<{
 );
 
 const DetailedSectionInput: React.FC<{
-  section: DetailedSection;
+  section: GroupedSection;
   onAddGroup: () => void;
   onRemoveGroup: (index: number) => void;
   onMoveGroup: (index: number, targetIndex: number) => void;
@@ -336,7 +347,7 @@ const DetailedSectionInput: React.FC<{
             <SmallIconButton
               disabled={
                 groupIndex ===
-                (props.section as DetailedSection).groups.length - 1
+                (props.section as GroupedSection).groups.length - 1
               }
               onClick={() => props.onMoveGroup(groupIndex, groupIndex + 1)}
               title="Move down"

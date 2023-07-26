@@ -229,7 +229,7 @@ const Basic: React.FC = () => {
                 section.description && (
                   <MarkdownView raw={section.description} />
                 )
-              ) : section.type === "detailed" ? (
+              ) : section.type === "grouped" ? (
                 section.groups.map((group, groupIndex) => (
                   <View
                     key={groupIndex}
