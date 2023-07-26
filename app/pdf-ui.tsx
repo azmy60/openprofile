@@ -1,10 +1,14 @@
-import ReactPDF, { Link, Text, View } from "@react-pdf/renderer";
+import ReactPDF, {
+  Link as ReactPDFLink,
+  Text,
+  View,
+} from "@react-pdf/renderer";
 import { marked } from "marked";
 import { memo } from "react";
 import {
   PDFGithubIcon,
-  PDFGlobeAltIcon,
   PDFIconProps,
+  PDFLinkIcon,
   PDFYoutubeIcon,
 } from "./icons";
 
@@ -49,7 +53,7 @@ const MarkdownResolver: React.FC<{ token: marked.Token }> = (props) => {
           }}
         >
           {props.token.items.map((token2, index) => (
-            <Text key={index}>ΓÇó {token2.text}</Text>
+            <Text key={index}>• {token2.text}</Text>
           ))}
         </View>
       );
@@ -58,15 +62,28 @@ const MarkdownResolver: React.FC<{ token: marked.Token }> = (props) => {
   }
 };
 
-export const IconLinkResolver: React.FC<PDFIconProps & { url: string }> = memo(
+export const IconLinkResolver: React.FC<
+  PDFIconProps & { url: string; color?: string }
+> = memo(
   function (props) {
-    const { url, ...rest } = props;
+    const { url, color, ...rest } = props;
     try {
       const hostname = new URL(url).hostname;
-      if (hostname.endsWith("github.com")) return <PDFGithubIcon {...rest} />;
-      if (hostname.endsWith("youtube.com")) return <PDFYoutubeIcon {...rest} />;
+      if (hostname.endsWith("github.com"))
+        return <PDFGithubIcon {...rest} {...(color && { fill: color })} />;
+      if (hostname.endsWith("youtube.com"))
+        return <PDFYoutubeIcon {...rest} {...(color && { fill: color })} />;
     } catch (e) {}
-    return <PDFGlobeAltIcon {...rest} />;
+    return <PDFLinkIcon {...rest} {...(color && { fill: color })} />;
   },
   (prev, next) => prev.url === next.url
+);
+
+export const Link: React.FC<React.PropsWithChildren<ReactPDF.LinkProps>> = (
+  props
+) => (
+  <ReactPDFLink
+    {...props}
+    style={{ color: "#000000", textDecoration: "none" }}
+  />
 );

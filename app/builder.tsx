@@ -16,6 +16,7 @@ import {
   TrashIcon as Trash20Icon,
   ArrowDownIcon,
   ArrowUpIcon,
+  XCircleIcon,
 } from "@heroicons/react/20/solid";
 import {
   TrashIcon as Trash24OutlineIcon,
@@ -39,25 +40,6 @@ import {
 import Script from "next/script";
 import pdfjs, { type PDFDocumentProxy, type PDFPageProxy } from "pdfjs-dist";
 import Basic from "./templates/basic";
-
-interface SimpleSection {
-  type: "simple";
-  name: string;
-  description: string;
-}
-
-interface DetailedSection {
-  type: "detailed";
-  name: string;
-  groups: Group[];
-}
-
-type Section = SimpleSection | DetailedSection;
-
-interface Group {
-  title: string;
-  description: string;
-}
 
 declare var pdfjsLib: typeof pdfjs;
 
@@ -177,6 +159,12 @@ const ProfileInputCollection: React.FC = () => {
           label="Name"
           name="name"
           value={content.name}
+          onChange={onChange}
+        />
+        <SimpleInput
+          label="Job Title"
+          name="jobTitle"
+          value={content.jobTitle}
           onChange={onChange}
         />
         <SimpleInput
@@ -372,6 +360,7 @@ const SectionGroupInput: React.FC<{ index: number; section: Section }> = (
   const {
     onChange,
     removeSection,
+    editSection,
     editSectionName,
     addSectionGroup,
     removeSectionGroup,
@@ -418,6 +407,94 @@ const SectionGroupInput: React.FC<{ index: number; section: Section }> = (
 
   function canMoveDown(groupIndex: number) {
     return groupIndex < (props.section as DetailedSection).groups.length - 1;
+  }
+
+  let input: React.ReactNode;
+
+  if (props.section.type === "simple") {
+    input = (
+      <TextArea
+        name={`sections-${props.index}-description`}
+        value={props.section.description}
+        onChange={onChange}
+        formControlProps={{ containerProps: { className: "pt-2" } }}
+      />
+    );
+  } else if (props.section.type === "detailed") {
+    input = (
+      <>
+        <div className="divide-y divide-dashed">
+          {props.section.groups.map((group, groupIndex) => (
+            <div
+              key={groupIndex}
+              className="group/group relative flex flex-col gap-4 pb-4 pt-6"
+            >
+              <div className="invisible absolute right-0 top-2 z-10 group-hover/group:visible">
+                <SmallIconButton
+                  disabled={!canMoveUp(groupIndex)}
+                  onClick={() => moveUp(props.index, groupIndex)}
+                  title="Move up"
+                >
+                  <span className="sr-only">Move up</span>
+                  <ArrowUpIcon className="w-4 h-4" />
+                </SmallIconButton>
+                <SmallIconButton
+                  disabled={!canMoveDown(groupIndex)}
+                  onClick={() => moveDown(props.index, groupIndex)}
+                  title="Move down"
+                >
+                  <span className="sr-only">Move down</span>
+                  <ArrowDownIcon className="w-4 h-4" />
+                </SmallIconButton>
+                <SmallIconButton
+                  onClick={() => removeSectionGroup(props.index, groupIndex)}
+                  title="Remove"
+                >
+                  <span className="sr-only">Remove group {groupIndex + 1}</span>
+                  <Trash20Icon className="w-4 h-4" />
+                </SmallIconButton>
+              </div>
+              <SimpleInput
+                label="Title"
+                name={`sections-${props.index}-groups-${groupIndex}-title`}
+                value={group.title}
+                onChange={onChange}
+              />
+              <TextArea
+                label="Description"
+                name={`sections-${props.index}-groups-${groupIndex}-description`}
+                value={group.description}
+                onChange={onChange}
+              />
+            </div>
+          ))}
+        </div>
+        <button
+          className="inline-flex items-center rounded py-2 px-2 text-sm font-medium text-indigo-600 hover:bg-indigo-50 focus:outline-none focus:ring"
+          type="button"
+          onClick={() => addSectionGroup(props.index)}
+        >
+          <PlusSmallIcon className="w-6 h-6" />
+          Add group
+        </button>
+      </>
+    );
+  } else {
+    input = (
+      <ChipInput
+        items={props.section.chips}
+        addItem={(value) => {
+          editSection<ChipSection>(props.index, (section) => {
+            section.chips.push(value);
+          });
+        }}
+        removeItem={(index) => {
+          editSection<ChipSection>(props.index, (section) => {
+            section.chips.splice(index, 1);
+          });
+        }}
+      />
+    );
   }
 
   return (
@@ -479,77 +556,65 @@ const SectionGroupInput: React.FC<{ index: number; section: Section }> = (
           </>
         )}
       </div>
-      {props.section.type === "simple" ? (
-        <TextArea
-          name={`sections-${props.index}-description`}
-          value={props.section.description}
-          onChange={onChange}
-          formControlProps={{ containerProps: { className: "pt-2" } }}
-        />
-      ) : (
-        <>
-          <div className="divide-y divide-dashed">
-            {props.section.groups.map((group, groupIndex) => (
-              <div
-                key={groupIndex}
-                className="group/group relative flex flex-col gap-4 pb-4 pt-6"
-              >
-                <div className="invisible absolute right-0 top-2 z-10 group-hover/group:visible">
-                  <SmallIconButton
-                    disabled={!canMoveUp(groupIndex)}
-                    onClick={() => moveUp(props.index, groupIndex)}
-                    title="Move up"
-                  >
-                    <span className="sr-only">Move up</span>
-                    <ArrowUpIcon className="w-4 h-4" />
-                  </SmallIconButton>
-                  <SmallIconButton
-                    disabled={!canMoveDown(groupIndex)}
-                    onClick={() => moveDown(props.index, groupIndex)}
-                    title="Move down"
-                  >
-                    <span className="sr-only">Move down</span>
-                    <ArrowDownIcon className="w-4 h-4" />
-                  </SmallIconButton>
-                  <SmallIconButton
-                    onClick={() => removeSectionGroup(props.index, groupIndex)}
-                    title="Remove"
-                  >
-                    <span className="sr-only">
-                      Remove group {groupIndex + 1}
-                    </span>
-                    <Trash20Icon className="w-4 h-4" />
-                  </SmallIconButton>
-                </div>
-                <SimpleInput
-                  label="Title"
-                  name={`sections-${props.index}-groups-${groupIndex}-title`}
-                  value={group.title}
-                  onChange={onChange}
-                />
-                <TextArea
-                  label="Description"
-                  name={`sections-${props.index}-groups-${groupIndex}-description`}
-                  value={group.description}
-                  onChange={onChange}
-                />
-              </div>
-            ))}
-          </div>
-          <button
-            className="inline-flex items-center rounded py-2 px-2 text-sm font-medium text-indigo-600 hover:bg-indigo-50 focus:outline-none focus:ring"
-            type="button"
-            onClick={() => addSectionGroup(props.index)}
-          >
-            <PlusSmallIcon className="w-6 h-6" />
-            Add group
-          </button>
-        </>
-      )}
+      {input}
     </div>
   );
 };
 
+const ChipInput: React.FC<{
+  addItem: (value: string) => void;
+  removeItem: (index: number) => void;
+  items: string[];
+}> = (props) => {
+  const [value, setValue] = useState("");
+
+  function addItem(value: string) {
+    props.addItem(value);
+    setValue("");
+  }
+
+  return (
+    <div>
+      <div className="flex gap-2 mb-3">
+        <SimpleInput
+          value={value}
+          onChange={(e) => setValue(e.currentTarget.value)}
+          inputProps={{
+            onKeyUp: (e) => {
+              if (e.key === "Enter") addItem(value);
+            },
+          }}
+        />
+        <SimpleButton
+          className="py-0.5 px-2 disabled:bg-gray-300 disabled:text-gray-400 disabled:border-gray-300"
+          onClick={() => addItem(value)}
+          disabled={!value}
+        >
+          Add
+        </SimpleButton>
+      </div>
+      <div className="flex flex-wrap gap-3">
+        {props.items.map((item, index) => (
+          <div
+            key={index}
+            className="relative group p-2 rounded-md bg-gray-100 text-sm"
+          >
+            {item}
+            <button
+              className="invisible group-hover:visible absolute -top-1 -right-3"
+              onClick={() => props.removeItem(index)}
+            >
+              <XCircleIcon className="w-5 h-5 text-red-700" />
+            </button>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+// TODO can this be done better?
+// we can do like setSection() by creating a new atom.., right? ¯\_(ツ)_/¯
 function useContent() {
   const setContent = useSetAtom(contentAtom);
 
@@ -574,6 +639,15 @@ function useContent() {
       produce((draft: Content) => {
         draft.sections.splice(sectionIndex, 1);
       })
+    );
+  }
+
+  function editSection<T extends Section>(
+    sectionIndex: number,
+    modifier: (section: T) => void
+  ) {
+    setContent(
+      produce((draft: Content) => modifier(draft.sections[sectionIndex] as T))
     );
   }
 
@@ -629,6 +703,7 @@ function useContent() {
   return {
     onChange,
     addSection,
+    editSection,
     removeSection,
     editSectionName,
     addSectionGroup,
@@ -638,9 +713,35 @@ function useContent() {
   };
 }
 
+interface SimpleSection {
+  type: "simple";
+  name: string;
+  description: string;
+}
+
+interface DetailedSection {
+  type: "detailed";
+  name: string;
+  groups: Group[];
+}
+
+interface ChipSection {
+  type: "chip";
+  name: string;
+  chips: string[];
+}
+
+type Section = SimpleSection | DetailedSection | ChipSection;
+
+interface Group {
+  title: string;
+  description: string;
+}
+
 export interface Content {
   welcome: boolean;
   name: string;
+  jobTitle: string;
   email: string;
   tel: string;
   location: string;
@@ -653,6 +754,7 @@ export interface Content {
 const contentAtom = atomWithStorage<Content>("openprofile-content", {
   welcome: true,
   name: "John Doe",
+  jobTitle: "Software Engineer",
   location: "Cupertino, California, United States",
   email: "example@email.com",
   tel: "(555) 123-4567",
@@ -677,10 +779,13 @@ const contentAtom = atomWithStorage<Content>("openprofile-content", {
         description: "XYZ University, Anytown, USA\n\nGraduated: May 2021",
       },
     ]),
-    buildSimpleSection(
-      "Skills",
-      "Web Development - Web Services - Security - Cloud Computing - Mobile Development"
-    ),
+    buildChipSection("Skills", [
+      "Web Development",
+      "Web Services",
+      "Security",
+      "Cloud Computing",
+      "Mobile Development",
+    ]),
   ],
 });
 
@@ -707,6 +812,13 @@ function buildSimpleSection(
   description: string = ""
 ): SimpleSection {
   return { type: "simple", name, description };
+}
+
+function buildChipSection(
+  name: string = "Untitled section",
+  chips: string[] = ["Chip 1"]
+): ChipSection {
+  return { type: "chip", name, chips };
 }
 
 function buildGroup(): Group {

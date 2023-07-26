@@ -17,7 +17,7 @@ export const SimpleInput: React.FC<{
         id={id}
         name={props.name}
         type="text"
-        className="mt-1 w-full rounded-md border-none bg-gray-100 py-2.5 sm:text-sm"
+        className="w-full rounded-md border-none bg-gray-100 py-2.5 sm:text-sm"
         value={props.value}
         onChange={(e) => props.onChange?.(e, e.currentTarget.value)}
         {...props.inputProps}
@@ -111,14 +111,12 @@ const FormControl: React.FC<{
   children: React.ReactNode;
 }> = (props) => (
   <div {...props.containerProps}>
-    {props.label && (
-      <label
-        htmlFor={props.id}
-        className="block text-xs font-medium text-gray-700"
-      >
-        {props.label}
-      </label>
-    )}
+    <label
+      htmlFor={props.id}
+      className="peer block text-xs font-medium text-gray-700"
+    >
+      {props.label}
+    </label>
     {props.children}
   </div>
 );

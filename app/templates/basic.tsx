@@ -1,10 +1,13 @@
-import { Document, Link, Page, Text, View } from "@react-pdf/renderer";
+import { Document, Page, Text, View } from "@react-pdf/renderer";
 import { PDFEnvelopeIcon, PDFMapPinIcon, PDFPhoneIcon } from "../icons";
-import { MarkdownView, IconLinkResolver } from "../pdf-ui";
+import { MarkdownView, IconLinkResolver, Link } from "../pdf-ui";
 import { useContentValue } from "../builder";
 
+const PRIMARY = "#4f46e5";
+const BORDER = "#dde5f7";
+
 const Basic: React.FC = () => {
-  const { name, email, tel, location, link, link2, link3, sections } =
+  const { name, jobTitle, email, tel, location, link, link2, link3, sections } =
     useContentValue();
   return (
     <Document>
@@ -37,10 +40,18 @@ const Basic: React.FC = () => {
               style={{
                 fontWeight: "bold",
                 fontSize: "21pt",
-                paddingBottom: "12pt",
+                paddingBottom: "4pt",
               }}
             >
               {name}
+            </Text>
+            <Text
+              style={{
+                fontWeight: "bold",
+                paddingBottom: "12pt",
+              }}
+            >
+              {jobTitle}
             </Text>
             <View style={{ display: "flex", flexDirection: "row", gap: 24 }}>
               <View
@@ -54,7 +65,11 @@ const Basic: React.FC = () => {
                       gap: "4pt",
                     }}
                   >
-                    <PDFMapPinIcon style={{ width: "12pt", height: "12pt" }} />
+                    <PDFMapPinIcon
+                      style={{ width: "12pt", height: "12pt" }}
+                      // @ts-expect-error
+                      stroke={PRIMARY}
+                    />
                     <Text>{location}</Text>
                   </View>
                 )}
@@ -68,10 +83,10 @@ const Basic: React.FC = () => {
                   >
                     <PDFEnvelopeIcon
                       style={{ width: "12pt", height: "12pt" }}
+                      // @ts-expect-error
+                      stroke={PRIMARY}
                     />
-                    <Link src={`mailto:${email}`} style={{ display: "flex" }}>
-                      {email}
-                    </Link>
+                    <Link src={`mailto:${email}`}>{email}</Link>
                   </View>
                 )}
               </View>
@@ -86,7 +101,11 @@ const Basic: React.FC = () => {
                       gap: "4pt",
                     }}
                   >
-                    <PDFPhoneIcon style={{ width: "12pt", height: "12pt" }} />
+                    <PDFPhoneIcon
+                      style={{ width: "12pt", height: "12pt" }}
+                      // @ts-expect-error
+                      stroke={PRIMARY}
+                    />
                     <Text>{tel}</Text>
                   </View>
                 )}
@@ -101,10 +120,9 @@ const Basic: React.FC = () => {
                     <IconLinkResolver
                       url={link}
                       style={{ width: "12pt", height: "12pt" }}
+                      color={PRIMARY}
                     />
-                    <Link src={link} style={{ display: "flex" }}>
-                      {link}
-                    </Link>
+                    <Link src={link}>{link}</Link>
                   </View>
                 )}
               </View>
@@ -122,10 +140,9 @@ const Basic: React.FC = () => {
                     <IconLinkResolver
                       url={link2}
                       style={{ width: "12pt", height: "12pt" }}
+                      color={PRIMARY}
                     />
-                    <Link src={link2} style={{ display: "flex" }}>
-                      {link2}
-                    </Link>
+                    <Link src={link2}>{link2}</Link>
                   </View>
                 )}
                 {!!link3 && (
@@ -139,10 +156,9 @@ const Basic: React.FC = () => {
                     <IconLinkResolver
                       url={link3}
                       style={{ width: "12pt", height: "12pt" }}
+                      color={PRIMARY}
                     />
-                    <Link src={link3} style={{ display: "flex" }}>
-                      {link3}
-                    </Link>
+                    <Link src={link3}>{link3}</Link>
                   </View>
                 )}
               </View>
@@ -166,26 +182,53 @@ const Basic: React.FC = () => {
               >
                 {section.name}
               </Text>
-              {section.type === "simple"
-                ? section.description && (
-                    <MarkdownView raw={section.description} />
-                  )
-                : section.groups.map((group, groupIndex) => (
+              {section.type === "simple" ? (
+                section.description && (
+                  <MarkdownView raw={section.description} />
+                )
+              ) : section.type === "detailed" ? (
+                section.groups.map((group, groupIndex) => (
+                  <View
+                    key={groupIndex}
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      marginBottom: 8,
+                      gap: 6,
+                    }}
+                  >
+                    <Text style={{ fontWeight: "bold" }}>{group.title}</Text>
+                    {group.description && (
+                      <MarkdownView raw={group.description} />
+                    )}
+                  </View>
+                ))
+              ) : section.type === "chip" ? (
+                <View
+                  style={{
+                    width: "100%",
+                    display: "flex",
+                    flexDirection: "row",
+                    flexWrap: "wrap",
+                    gap: '8pt',
+                  }}
+                >
+                  {section.chips.map((chip, index) => (
                     <View
-                      key={groupIndex}
+                      key={index}
                       style={{
-                        display: "flex",
-                        flexDirection: "column",
-                        marginBottom: 8,
-                        gap: 6,
+                        borderWidth: "1pt",
+                        borderStyle: "solid",
+                        borderColor: BORDER,
+                        borderRadius: "4pt",
+                        padding: "6pt",
                       }}
                     >
-                      <Text style={{ fontWeight: "bold" }}>{group.title}</Text>
-                      {group.description && (
-                        <MarkdownView raw={group.description} />
-                      )}
+                      <Text>{chip}</Text>
                     </View>
                   ))}
+                </View>
+              ) : null}
             </View>
           ))}
         </View>
