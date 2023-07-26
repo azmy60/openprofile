@@ -42,7 +42,7 @@ export const TextArea: React.FC<{
   const id = useId();
   const ref = useRef<HTMLTextAreaElement>(null);
 
-  useAutosizeTextArea(ref.current, props.value as string);
+  const resize = useAutosizeTextArea(ref.current, props.value as string);
 
   function setValue(str: string) {
     const nativeSetter = Object.getOwnPropertyDescriptor(
@@ -102,6 +102,7 @@ export const TextArea: React.FC<{
           className="w-full resize-none border-none bg-transparent sm:text-sm sm:leading-relaxed"
           onChange={(e) => props.onChange?.(e, e.currentTarget.value)}
           value={props.value}
+          onFocus={resize}
           {...props.textareaProps}
         />
       </div>
@@ -130,18 +131,21 @@ function useAutosizeTextArea(
   textAreaRef: HTMLTextAreaElement | null,
   value: string
 ) {
-  useEffect(() => {
-    if (textAreaRef) {
-      // We need to reset the height momentarily to get the correct scrollHeight for the textarea
-      textAreaRef.style.height = "0px";
-      // Add a little bit room so it wouldn't show the scrollbar
-      const scrollHeight = textAreaRef.scrollHeight + 4;
+  function resize() {
+    if (!textAreaRef) return;
+    // We need to reset the height momentarily to get the correct scrollHeight for the textarea
+    textAreaRef.style.height = "0px";
+    // Add a little bit room so it wouldn't show the scrollbar
+    const scrollHeight = textAreaRef.scrollHeight + 4;
 
-      // We then set the height directly, outside of the render loop
-      // Trying to set this with state or a ref will product an incorrect value.
-      textAreaRef.style.height = scrollHeight + "px";
-    }
-  }, [textAreaRef, value]);
+    // We then set the height directly, outside of the render loop
+    // Trying to set this with state or a ref will product an incorrect value.
+    textAreaRef.style.height = scrollHeight + "px";
+  }
+
+  useEffect(() => resize(), [textAreaRef, value]);
+
+  return resize;
 }
 
 export const SimpleButton: React.FC<
