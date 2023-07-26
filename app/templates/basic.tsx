@@ -1,23 +1,25 @@
 import { Document, Image, Page, Text, View } from "@react-pdf/renderer";
 import { PDFEnvelopeIcon, PDFMapPinIcon, PDFPhoneIcon } from "../icons";
 import { MarkdownView, IconLinkResolver, Link } from "../pdf-ui";
-import { useContentValue } from "../builder";
+import { useContentValue } from "../builder/state";
 
 const PRIMARY = "#4f46e5";
 const BORDER = "#dde5f7";
 
 const Basic: React.FC = () => {
   const {
-    name,
-    jobTitle,
-    email,
-    tel,
-    location,
-    link,
-    link2,
-    link3,
+    profile: {
+      name,
+      jobTitle,
+      email,
+      tel,
+      location,
+      link,
+      link2,
+      link3,
+      photo,
+    },
     sections,
-    photo,
   } = useContentValue();
   return (
     <Document>

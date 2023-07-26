@@ -1,5 +1,7 @@
-import Builder from "./builder";
+import dynamic from "next/dynamic";
+import Form from "./builder/form";
 import { GithubIcon } from "./icons";
+import WelcomeCard from "./welcome-card";
 
 export default function Home() {
   return (
@@ -12,7 +14,18 @@ export default function Home() {
           </a>
         </div>
       </div>
-      <Builder />
+      <div className="relative min-h-0 flex w-full overflow-y-scroll bg-gray-300">
+        <div className="flex w-1/2 flex-col gap-12 p-8 bg-white h-fit">
+          <WelcomeCard />
+          <Form />
+          <div className="pt-[1px] -mt-6" />
+        </div>
+        <DynamicViewArea />
+      </div>
     </main>
   );
 }
+
+const DynamicViewArea = dynamic(() => import("./builder/view-area"), {
+  ssr: false,
+});

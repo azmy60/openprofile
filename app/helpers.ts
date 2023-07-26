@@ -33,19 +33,3 @@ export const useClickAway = <E extends Event = Event>(
     };
   }, [events, ref]);
 };
-
-/** Mutably set the value of `draft` object by `path`. */
-export function setValueByPath(draft: object, path: string, value: unknown) {
-  let walker: any = draft;
-  const steps = generateWalkSteps(path);
-  steps.forEach((step, idx) => {
-    if (idx === steps.length - 1) walker[step] = value;
-    else walker = walker[step];
-  });
-}
-
-const WALK_STEPS_MATCHER = /(\w+)/g;
-
-function generateWalkSteps(path: string): string[] {
-  return path.match(WALK_STEPS_MATCHER) || [];
-}
