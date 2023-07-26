@@ -26,6 +26,16 @@ export const ProfileForm: React.FC = () => {
     );
   }
 
+  function onChangePhoto(e: React.ChangeEvent<HTMLInputElement>) {
+    const files = e.currentTarget.files;
+    if (!files) return;
+    const reader = new FileReader();
+    reader.addEventListener("load", () =>
+      updateProfile("photo", reader.result as string)
+    );
+    reader.readAsDataURL(files[0]);
+  }
+
   return (
     <div>
       <div className="text-lg font-bold">Personal</div>
@@ -91,7 +101,7 @@ export const ProfileForm: React.FC = () => {
             label="Photo"
             type="file"
             name="photo"
-            onChange={(_, value) => updateProfile("photo", value)}
+            onChange={onChangePhoto}
             inputProps={{
               accept: "image/*",
               className:
@@ -103,4 +113,3 @@ export const ProfileForm: React.FC = () => {
     </div>
   );
 };
-
