@@ -4,7 +4,7 @@ import { useAtom } from "jotai";
 import { XMarkIcon } from "@heroicons/react/20/solid";
 import { atomWithStorage } from "jotai/utils";
 
-const welcomeAtom = atomWithStorage<boolean>("openprofile-welcome", false);
+const welcomeAtom = atomWithStorage<boolean>("openprofile-welcome", true);
 
 const WelcomeCard: React.FC = () => {
   const [welcome, setWelcome] = useAtom(welcomeAtom);
