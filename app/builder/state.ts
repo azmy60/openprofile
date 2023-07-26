@@ -6,8 +6,8 @@ import {
   buildGroupedSection,
   buildSimpleSection,
 } from "./sections";
-import { useAtomValue } from "jotai";
 import { focusAtom } from "jotai-optics";
+import { StandardPageSize } from "@react-pdf/types";
 
 interface Resume {
   profile: Profile;
@@ -54,12 +54,25 @@ const contentAtom = atomWithStorage<Resume>("openprofile-resume", {
   ],
 });
 
-export const useContentValue = () => useAtomValue(contentAtom);
-
 export const profileAtom = focusAtom(contentAtom, (optic) =>
   optic.prop("profile")
 );
 
 export const sectionsAtom = focusAtom(contentAtom, (optic) =>
   optic.prop("sections")
+);
+
+interface PageSettings {
+  size: StandardPageSize;
+}
+
+const pageSettingsAtom = atomWithStorage<PageSettings>(
+  "openprofile-page-settings",
+  {
+    size: "LETTER",
+  }
+);
+
+export const pageSizeAtom = focusAtom(pageSettingsAtom, (optic) =>
+  optic.prop("size")
 );

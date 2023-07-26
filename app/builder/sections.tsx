@@ -403,7 +403,7 @@ const ChipSectionInput: React.FC<{
 
   return (
     <div>
-      <div className="flex gap-2 mb-3">
+      <div className="flex gap-2 mb-3 mt-5">
         <SimpleInput
           value={value}
           onChange={(e) => setValue(e.currentTarget.value)}
@@ -414,7 +414,7 @@ const ChipSectionInput: React.FC<{
           }}
         />
         <SimpleButton
-          className="py-0.5 px-2 disabled:bg-gray-300 disabled:text-gray-400 disabled:border-gray-300"
+          className="py-0.5 px-2 disabled:bg-gray-200 disabled:text-gray-400 disabled:border-gray-200"
           onClick={() => addItem(value)}
           disabled={!value}
         >

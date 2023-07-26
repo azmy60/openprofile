@@ -1,12 +1,11 @@
 import dynamic from "next/dynamic";
-import Form from "./builder/form";
 import { GithubIcon } from "./icons";
-import WelcomeCard from "./welcome-card";
+import MainPanel from "./builder/main-panel";
 
 export default function Home() {
   return (
     <main className="flex flex-col h-screen">
-      <div className="flex px-4 py-2 shadow-sm">
+      <div className="flex px-8 py-2 shadow-sm z-10">
         <h1 className="text-gray-800 text-xl font-bold">OpenProfile</h1>
         <div className="ml-auto">
           <a href="https://github.com/azmy60/openprofile" target="_blank">
@@ -15,17 +14,15 @@ export default function Home() {
         </div>
       </div>
       <div className="relative min-h-0 flex w-full overflow-y-scroll bg-gray-300">
-        <div className="flex w-1/2 flex-col gap-12 p-8 bg-white h-fit">
-          <WelcomeCard />
-          <Form />
-          <div className="pt-[1px] -mt-6" />
+        <div className="w-1/2 bg-white h-fit min-h-full">
+          <MainPanel />
         </div>
-        <DynamicViewArea />
+        <DynamicViewPanel />
       </div>
     </main>
   );
 }
 
-const DynamicViewArea = dynamic(() => import("./builder/view-area"), {
+const DynamicViewPanel = dynamic(() => import("./builder/view-panel"), {
   ssr: false,
 });

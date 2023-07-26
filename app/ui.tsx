@@ -118,7 +118,7 @@ const FormControl: React.FC<{
   <div {...props.containerProps}>
     <label
       htmlFor={props.id}
-      className="peer block text-xs font-medium text-gray-700"
+      className="peer block text-xs font-medium text-gray-700 [&:not(:empty)]:mb-2"
     >
       {props.label}
     </label>
@@ -182,3 +182,91 @@ export const SmallIconButton: React.FC<
     {...props}
   />
 );
+
+export interface Tab<T> {
+  id: T;
+  label: string;
+}
+
+export function PillsTab<T extends string>(props: {
+  tabs: Tab<T>[];
+  onSelect: (id: T) => void;
+  selected: T;
+}) {
+  return (
+    <div>
+      <div className="sm:hidden">
+        <label htmlFor="Tab" className="sr-only">
+          Tab
+        </label>
+
+        <select
+          id="Tab"
+          className="w-full rounded-md border-gray-200"
+          value={props.selected}
+          onChange={(e) => props.onSelect(e.currentTarget.value as T)}
+        >
+          {props.tabs.map((tab) => (
+            <option key={tab.id} value={tab.id}>
+              {tab.label}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      <div className="hidden sm:block">
+        <nav className="flex gap-2" aria-label="Tabs">
+          {props.tabs.map((tab) =>
+            tab.id === props.selected ? (
+              <button
+                key={tab.id}
+                className="shrink-0 rounded-lg bg-gray-100 p-2 text-sm font-medium text-gray-700"
+                aria-current="page"
+              >
+                {tab.label}
+              </button>
+            ) : (
+              <button
+                key={tab.id}
+                className="shrink-0 rounded-lg p-2 text-sm font-medium text-gray-500 hover:bg-gray-50 hover:text-gray-700"
+                onClick={() => props.onSelect(tab.id)}
+              >
+                {tab.label}
+              </button>
+            )
+          )}
+        </nav>
+      </div>
+    </div>
+  );
+}
+
+export function ContainedButtonGroupTab<T extends string>(props: {
+  tabs: Tab<T>[];
+  onSelect: (id: T) => void;
+  selected: T;
+}) {
+  return (
+    <div className="inline-flex rounded-lg border border-gray-100 bg-gray-100 p-1">
+      {props.tabs.map((tab) =>
+        tab.id === props.selected ? (
+          <button
+            key={tab.id}
+            className="inline-block rounded-md bg-white px-4 py-2 text-sm text-blue-500 shadow-sm focus:relative"
+            onClick={() => props.onSelect(tab.id)}
+          >
+            {tab.label}
+          </button>
+        ) : (
+          <button
+            key={tab.id}
+            className="inline-block rounded-md px-4 py-2 text-sm text-gray-500 hover:text-gray-700 focus:relative"
+            onClick={() => props.onSelect(tab.id)}
+          >
+            {tab.label}
+          </button>
+        )
+      )}
+    </div>
+  );
+}

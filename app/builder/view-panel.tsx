@@ -34,7 +34,7 @@ FONT_FAMILIES.forEach((font) => {
 
 let pageNumIsPending = -1;
 
-const ViewArea: React.FC = () => {
+const ViewPanel: React.FC = () => {
   const [instance] = usePDF({ document: <Basic /> });
   const [currentPage, setCurrentPage] = useState(1);
   const [openMenu, setOpenMenu] = useState(false);
@@ -83,7 +83,7 @@ const ViewArea: React.FC = () => {
   }
 
   return (
-    <div className="sticky left-1/2 top-0 w-1/2 h-full px-4 py-4 flex flex-col gap-4">
+    <div className="sticky left-1/2 top-0 w-1/2 h-full px-8 py-4 flex flex-col gap-4">
       <div className="pdf-viewer relative self-start min-h-0 mx-auto">
         <canvas ref={canvas} className="h-full object-contain" />
         <div className="absolute inset-0" />
@@ -150,7 +150,7 @@ const ViewArea: React.FC = () => {
   );
 };
 
-export default ViewArea;
+export default ViewPanel;
 
 async function renderPDFPage(page: PDFPageProxy, canvas: HTMLCanvasElement) {
   const viewport = page.getViewport({ scale: 2 });
