@@ -3,6 +3,7 @@ import { PDFEnvelopeIcon, PDFMapPinIcon, PDFPhoneIcon } from "../icons";
 import { MarkdownView, IconLinkResolver, Link } from "../pdf-ui";
 import { pageSizeAtom, profileAtom, sectionsAtom } from "../builder/state";
 import { useAtomValue } from "jotai";
+import { useEffect, useState } from "react";
 
 const PRIMARY = "#4f46e5";
 const BORDER = "#dde5f7";
@@ -197,9 +198,9 @@ const Basic: React.FC = () => {
               />
             )}
           </View>
-          {sections.map((section, sectionIndex) => (
+          {sections.map((section) => (
             <View
-              key={sectionIndex}
+              key={section.id}
               style={{
                 display: "flex",
                 flexDirection: "column",
@@ -220,9 +221,9 @@ const Basic: React.FC = () => {
                   <MarkdownView raw={section.description} />
                 )
               ) : section.type === "grouped" ? (
-                section.groups.map((group, groupIndex) => (
+                section.groups.map((group) => (
                   <View
-                    key={groupIndex}
+                    key={group.id}
                     style={{
                       display: "flex",
                       flexDirection: "column",
@@ -246,9 +247,9 @@ const Basic: React.FC = () => {
                     gap: "8pt",
                   }}
                 >
-                  {section.chips.map((chip, index) => (
+                  {section.chips.map((chip) => (
                     <View
-                      key={index}
+                      key={chip}
                       style={{
                         borderWidth: "1pt",
                         borderStyle: "solid",

@@ -15,30 +15,36 @@ import {
   XMarkIcon,
   CheckIcon,
   PlusSmallIcon,
+  ArrowDownIcon as ArrowDown24Icon,
+  ArrowUpIcon as ArrowUp24Icon,
 } from "@heroicons/react/24/outline";
-import { moveArrayElement, useClickAway } from "../helpers";
+import { genId, moveArrayElement, useClickAway } from "../helpers";
 import { SimpleButton, SimpleInput, SmallIconButton, TextArea } from "../ui";
-import { sectionsAtom } from "../builder/state";
+import { eventBus, sectionsAtom } from "../builder/state";
 
-interface SimpleSection {
-  type: SimpleSectionType;
+interface SectionBase {
+  readonly type: SectionType;
+  readonly id: string; // used for sorting
   name: string;
+}
+
+interface SimpleSection extends SectionBase {
+  type: SimpleSectionType;
   description: string;
 }
 
-interface GroupedSection {
+interface GroupedSection extends SectionBase {
   type: GroupedSectionType;
-  name: string;
   groups: Group[];
 }
 
-interface ChipSection {
+interface ChipSection extends SectionBase {
   type: ChipSectionType;
-  name: string;
   chips: string[];
 }
 
 interface Group {
+  id: string;
   title: string;
   description: string;
 }
@@ -60,41 +66,89 @@ export function buildGroupedSection(
   name: string = "Untitled section",
   groups: Group[] = [buildGroup()]
 ): GroupedSection {
-  return { type: "grouped", name, groups };
+  return { id: genId(), type: "grouped", name, groups };
 }
 
 export function buildSimpleSection(
   name: string = "Untitled section",
   description: string = ""
 ): SimpleSection {
-  return { type: "simple", name, description };
+  return { id: genId(), type: "simple", name, description };
 }
 
 export function buildChipSection(
   name: string = "Untitled section",
   chips: string[] = ["Chip 1"]
 ): ChipSection {
-  return { type: "chip", name, chips };
+  return { id: genId(), type: "chip", name, chips };
 }
 
-export function buildGroup(): Group {
-  return { title: "", description: "" };
+export function buildGroup(
+  title: string = "",
+  description: string = ""
+): Group {
+  return { id: genId(), title, description };
 }
+
+let outlinedTimeout: NodeJS.Timeout;
+let scrollIntoViewTimeout: NodeJS.Timeout;
 
 export const SectionForm: React.FC<{ index: number; section: Section }> = (
   props
 ) => {
+  const ref = useRef<HTMLDivElement>(null);
+  const setSections = useSetAtom(sectionsAtom);
+  const [mustScrollIntoView, setMustScrollIntoView] = useState(false);
+  const [outlined, setOutlined] = useState(false);
+
+  function moveSection(direction: "up" | "down") {
+    setSections(
+      produce((draft) => {
+        const target = direction === "up" ? props.index - 1 : props.index + 1;
+        moveArrayElement(draft, props.index, target);
+      })
+    );
+    setOutlined(true);
+    setMustScrollIntoView(true);
+    eventBus.emit("reorder-section");
+  }
+
+  if (mustScrollIntoView) {
+    clearTimeout(scrollIntoViewTimeout);
+    clearTimeout(outlinedTimeout);
+
+    scrollIntoViewTimeout = setTimeout(
+      () => ref.current!.scrollIntoView({ behavior: "auto", block: "center" }),
+      50
+    );
+    outlinedTimeout = setTimeout(() => setOutlined(false), 2000);
+    setMustScrollIntoView(false);
+  }
+
   return (
-    <div>
-      <SectionInputHeading section={props.section} index={props.index} />
+    <div
+      ref={ref}
+      className={
+        outlined
+          ? "rounded-md outline-dashed outline-offset-2 outline-4 outline-indigo-100"
+          : ""
+      }
+    >
+      <SectionInputHeading
+        section={props.section}
+        index={props.index}
+        onMove={moveSection}
+      />
       <SectionInput section={props.section} index={props.index} />
     </div>
   );
 };
 
-const SectionInputHeading: React.FC<{ index: number; section: Section }> = (
-  props
-) => {
+const SectionInputHeading: React.FC<{
+  index: number;
+  section: Section;
+  onMove: (direction: "up" | "down") => void;
+}> = (props) => {
   const setSections = useSetAtom(sectionsAtom);
   const [draft, setDraft] = useState("");
   const [editing, setEditing] = useState(false);
@@ -144,7 +198,6 @@ const SectionInputHeading: React.FC<{ index: number; section: Section }> = (
   function onClickRemoveSection() {
     removeSection(props.index);
   }
-
   return (
     <div className="group/heading flex gap-4">
       {editing ? (
@@ -181,6 +234,24 @@ const SectionInputHeading: React.FC<{ index: number; section: Section }> = (
         <>
           <div className="text-lg font-bold">{props.section.name}</div>
           <div className="invisible flex gap-2 group-hover/heading:visible">
+            <button
+              className="inline-block rounded-full text-gray-400 hover:text-gray-600 focus:outline-none focus:ring"
+              type="button"
+              onClick={() => props.onMove("up")}
+              title="Move up"
+            >
+              <span className="sr-only">Move {props.section.name} up</span>
+              <ArrowUp24Icon className="h-5 w-5" />
+            </button>
+            <button
+              className="inline-block rounded-full text-gray-400 hover:text-gray-600 focus:outline-none focus:ring"
+              type="button"
+              onClick={() => props.onMove("down")}
+              title="Move down"
+            >
+              <span className="sr-only">Move {props.section.name} down</span>
+              <ArrowDown24Icon className="h-5 w-5" />
+            </button>
             <button
               className="inline-block rounded-full text-gray-400 hover:text-gray-600 focus:outline-none focus:ring"
               type="button"

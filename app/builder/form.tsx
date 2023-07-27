@@ -34,7 +34,7 @@ const Form: React.FC = () => {
     <div className="flex flex-col gap-12">
       <ProfileForm />
       {sections.map((section, index) => (
-        <SectionForm key={index} index={index} section={section} />
+        <SectionForm key={section.id} index={index} section={section} />
       ))}
       <div className="border-t border-gray-100" />
       <div className="flex gap-2 items-center">

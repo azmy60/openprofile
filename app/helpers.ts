@@ -33,3 +33,7 @@ export const useClickAway = <E extends Event = Event>(
     };
   }, [events, ref]);
 };
+
+export function genId(): string {
+  return Math.random().toString(16).slice(2);
+}

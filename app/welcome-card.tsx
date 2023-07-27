@@ -39,19 +39,45 @@ const WelcomeCard: React.FC = () => {
         free to use it for any purpose and share it with your friends!
       </p>
       <br />
-      <p>
-        If you have any feedbacks, please open an issue{" "}
+      <p className="leading-relaxed">
+        If you like OpenProfile, you can help the project grow by{" "}
         <a
-          href="https://github.com/azmy60/openprofile"
+          href="https://github.com/azmy60/openprofile/issues/new"
           target="_blank"
-          className="underline font-bold"
+          className="font-bold"
         >
-          here
-        </a>
-        .
+          starring
+        </a>{" "}
+        the repository{" "}
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 36 36"
+          className="inline w-5 h-5"
+        >
+          <path
+            d="m34.347 16.893-8.899-3.294-3.323-10.891c-.128-.42-.517-.708-.956-.708s-.828.288-.956.708l-3.322 10.891-8.9 3.294c-.393.146-.653.519-.653.938 0 .418.26.793.653.938l8.895 3.293 3.324 11.223c.126.424.516.715.959.715.442 0 .833-.291.959-.716l3.324-11.223 8.896-3.293c.391-.144.652-.518.652-.937 0-.418-.261-.792-.653-.938z"
+            fill="#ffac33"
+          />
+          <path
+            d="m14.347 27.894-2.314-.856-.9-3.3c-.118-.436-.513-.738-.964-.738s-.846.302-.965.737l-.9 3.3-2.313.856c-.393.145-.653.52-.653.938s.26.793.653.938l2.301.853.907 3.622c.112.444.511.756.97.756s.858-.312.97-.757l.907-3.622 2.301-.853c.393-.144.653-.519.653-.937s-.26-.793-.653-.937zm-4.338-21.663-2.364-.875-.876-2.365c-.145-.393-.519-.653-.938-.653-.418 0-.792.26-.938.653l-.875 2.365-2.365.875c-.393.146-.653.52-.653.938s.26.793.653.938l2.365.875.875 2.365c.146.393.52.653.938.653s.792-.26.938-.653l.875-2.365 2.365-.875c.393-.146.653-.52.653-.938s-.26-.792-.653-.938z"
+            fill="#ffcc4d"
+          />
+        </svg>
       </p>
       <br />
-      <p>
+      <p className="leading-relaxed">
+        If you have any feedbacks, please help me by either{" "}
+        <a
+          href="https://github.com/azmy60/openprofile/issues/new"
+          target="_blank"
+          className="font-bold"
+        >
+          creating an issue
+        </a>{" "}
+        or submit a pull request.
+      </p>
+      <br />
+      <p className="leading-relaxed">
         Thank you for using OpenProfile!{" "}
         <svg
           xmlns="http://www.w3.org/2000/svg"
