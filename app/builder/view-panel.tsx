@@ -140,10 +140,10 @@ const ViewPanel: React.FC = () => {
         </div>
       </div>
       <Script
-        src="/pdfjs-dist/build/pdf.js"
+        src="/pdfjs-dist/build/pdf.min.js"
         onLoad={() => {
           pdfjsLib.GlobalWorkerOptions.workerSrc =
-            "/pdfjs-dist/build/pdf.worker.js";
+            "/pdfjs-dist/build/pdf.worker.min.js";
         }}
       />
     </div>
