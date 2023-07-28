@@ -9,7 +9,7 @@ const SimpleInput: React.FC<{
   inputProps?: React.HTMLProps<HTMLInputElement>;
   value?: React.HTMLProps<HTMLInputElement>["value"];
   onChange?: (e: ChangeEvent<HTMLInputElement>, value: string) => void;
-  FormControlProps: Partial<React.ComponentProps<typeof FormControl>>;
+  FormControlProps?: Partial<React.ComponentProps<typeof FormControl>>;
 }> = (props) => {
   const id = useId();
   return (
