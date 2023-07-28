@@ -1,10 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { PillsTab, Tab } from "../ui";
 import WelcomeCard from "../welcome-card";
 import Form from "./form";
 import PageSettings from "./page-settings";
+import PillsTab, { Tab } from "@ui/PillsTab";
 
 type TabOptions = "resume" | "settings";
 

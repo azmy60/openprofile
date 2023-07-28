@@ -9,9 +9,9 @@ import {
   buildGroupedSection,
   buildSimpleSection,
 } from "./sections";
-import { SimpleBorderButton } from "../ui";
 import { ProfileForm } from "./profile";
 import { sectionsAtom } from "./state";
+import SimpleBorderButton from "@ui/SimpleBorderButton";
 
 const Form: React.FC = () => {
   const [sections, setSections] = useAtom(sectionsAtom);
@@ -26,7 +26,7 @@ const Form: React.FC = () => {
         } else {
           draft.push(buildChipSection());
         }
-      })
+      }),
     );
   }
 

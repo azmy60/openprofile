@@ -9,12 +9,12 @@ import {
   ChevronRightIcon,
 } from "@heroicons/react/24/outline";
 import { useClickAway } from "../helpers";
-import { SimpleButton } from "../ui";
 import Script from "next/script";
 import pdfjs, { type PDFDocumentProxy, type PDFPageProxy } from "pdfjs-dist";
 import Basic from "../templates/basic";
 import { Font } from "@react-pdf/renderer";
-import { eventBus } from "./state";
+// import { eventBus } from "./state";
+import SimpleButton from "@ui/SimpleButton";
 
 declare var pdfjsLib: typeof pdfjs;
 
@@ -151,22 +151,23 @@ const MainViewPanel: React.FC = () => {
   );
 };
 
-let forceUpdateTimeout: NodeJS.Timeout;
+// let forceUpdateTimeout: NodeJS.Timeout;
 
 // Have to do this to force a re-render because of the bug from react-pdf
+// UPDATE: another fix is to add index to the keys in .map
 // See https://github.com/diegomura/react-pdf/issues/2371
 const ViewPanel: React.FC = () => {
-  const [n, setN] = useState(0);
-  function forceUpdate() {
-    setN((s) => s + 1);
-    setTimeout(() => setN((s) => s + 1), 200);
-  }
-  function runForceUpdate() {
-    clearTimeout(forceUpdateTimeout);
-    forceUpdateTimeout = setTimeout(forceUpdate, 200);
-  }
-  useEffect(() => eventBus.on("reorder-section", runForceUpdate), []);
-  if (n % 2 === 1) return null;
+  // const [n, setN] = useState(0);
+  // function forceUpdate() {
+  //   setN((s) => s + 1);
+  //   setTimeout(() => setN((s) => s + 1), 200);
+  // }
+  // function runForceUpdate() {
+  //   clearTimeout(forceUpdateTimeout);
+  //   forceUpdateTimeout = setTimeout(forceUpdate, 200);
+  // }
+  // useEffect(() => eventBus.on("reorder-section", runForceUpdate), []);
+  // if (n % 2 === 1) return null;
   return <MainViewPanel />;
 };
 

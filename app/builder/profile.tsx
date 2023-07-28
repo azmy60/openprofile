@@ -1,7 +1,7 @@
 import { useAtom } from "jotai";
 import { produce } from "immer";
-import { SimpleInput } from "../ui";
 import { profileAtom } from "./state";
+import SimpleInput from "@ui/SimpleInput";
 
 export interface Profile {
   photo: string;
@@ -22,7 +22,7 @@ export const ProfileForm: React.FC = () => {
     setProfile(
       produce((draft) => {
         draft[name] = value;
-      })
+      }),
     );
   }
 
@@ -31,7 +31,7 @@ export const ProfileForm: React.FC = () => {
     if (!files) return;
     const reader = new FileReader();
     reader.addEventListener("load", () =>
-      updateProfile("photo", reader.result as string)
+      updateProfile("photo", reader.result as string),
     );
     reader.readAsDataURL(files[0]);
   }

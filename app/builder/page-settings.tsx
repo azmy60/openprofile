@@ -1,7 +1,7 @@
 import { StandardPageSize } from "@react-pdf/types";
-import { ContainedButtonGroupTab, Tab } from "../ui";
 import { useAtom } from "jotai";
 import { pageSizeAtom } from "./state";
+import ContainedButtonGroupTab, { Tab } from "@ui/ContainedButtonGroupTab";
 
 const pageSizes: Tab<StandardPageSize>[] = [
   { id: "A4", label: "A4" },

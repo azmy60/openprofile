@@ -1,9 +1,12 @@
 import { Document, Image, Page, Text, View } from "@react-pdf/renderer";
-import { PDFEnvelopeIcon, PDFMapPinIcon, PDFPhoneIcon } from "../icons";
-import { MarkdownView, IconLinkResolver, Link } from "../pdf-ui";
-import { pageSizeAtom, profileAtom, sectionsAtom } from "../builder/state";
+import { pageSizeAtom, profileAtom, sectionsAtom } from "@builder/state";
 import { useAtomValue } from "jotai";
-import { useEffect, useState } from "react";
+import MapPinIcon from "@ui-pdf/icons/MapPinIcon";
+import EnvelopeIcon from "@ui-pdf/icons/EnvelopeIcon";
+import Link from "@ui-pdf/Link";
+import PhoneIcon from "@ui-pdf/icons/PhoneIcon";
+import IconLinkResolver from "@ui-pdf/IconLinkResolver";
+import RichTextValueResolver from "@ui-pdf/RichTextValueResolver";
 
 const PRIMARY = "#4f46e5";
 const BORDER = "#dde5f7";
@@ -79,7 +82,7 @@ const Basic: React.FC = () => {
                         gap: "4pt",
                       }}
                     >
-                      <PDFMapPinIcon
+                      <MapPinIcon
                         style={{ width: "12pt", height: "12pt" }}
                         // @ts-expect-error
                         stroke={PRIMARY}
@@ -95,7 +98,7 @@ const Basic: React.FC = () => {
                         gap: "4pt",
                       }}
                     >
-                      <PDFEnvelopeIcon
+                      <EnvelopeIcon
                         style={{ width: "12pt", height: "12pt" }}
                         // @ts-expect-error
                         stroke={PRIMARY}
@@ -119,7 +122,7 @@ const Basic: React.FC = () => {
                         gap: "4pt",
                       }}
                     >
-                      <PDFPhoneIcon
+                      <PhoneIcon
                         style={{ width: "12pt", height: "12pt" }}
                         // @ts-expect-error
                         stroke={PRIMARY}
@@ -198,9 +201,9 @@ const Basic: React.FC = () => {
               />
             )}
           </View>
-          {sections.map((section) => (
+          {sections.map((section, idx) => (
             <View
-              key={section.id}
+              key={`${section.id}-${idx}`}
               style={{
                 display: "flex",
                 flexDirection: "column",
@@ -218,12 +221,12 @@ const Basic: React.FC = () => {
               </Text>
               {section.type === "simple" ? (
                 section.description && (
-                  <MarkdownView raw={section.description} />
+                  <RichTextValueResolver value={section.description} />
                 )
               ) : section.type === "grouped" ? (
-                section.groups.map((group) => (
+                section.groups.map((group, idx) => (
                   <View
-                    key={group.id}
+                    key={`${group.id}-${idx}`}
                     style={{
                       display: "flex",
                       flexDirection: "column",
@@ -233,7 +236,7 @@ const Basic: React.FC = () => {
                   >
                     <Text style={{ fontWeight: "bold" }}>{group.title}</Text>
                     {group.description && (
-                      <MarkdownView raw={group.description} />
+                      <RichTextValueResolver value={group.description} />
                     )}
                   </View>
                 ))

@@ -21,7 +21,7 @@ const contentAtom = atomWithStorage<Resume>("openprofile-resume", {
     photo: "",
     name: "John Doe",
     jobTitle: "Software Engineer",
-    location: "Cupertino, California, United States",
+    location: "Cupertino, California",
     email: "example@email.com",
     tel: "(555) 123-4567",
     link: "https://example.com",
@@ -29,38 +29,21 @@ const contentAtom = atomWithStorage<Resume>("openprofile-resume", {
     link3: "",
   },
   sections: [
-    buildSimpleSection(
-      "Summary",
-      "Experienced web developer with 2 years of expertise in HTML, CSS, JavaScript, and responsive design. Skilled in translating client requirements into visually appealing web applications. Proficient in React, Angular, and Git. Strong problem-solving and attention to detail. Seeking a dynamic team to deliver high-quality web solutions."
-    ),
-    buildGroupedSection("Experience", [
-      buildGroup(
-        "Junior Software Engineer",
-        'Company X\n\nJun 2021 - Jul 2023 (2 year 1 month)\n\nContributed to the development of web applications with React and Angular as the main technologies. Collaborated with cross-functional teams to troubleshoot and resolve technical issues.\n\n- "You may also make a list here"\n- ....'
-      ),
-    ]),
+    buildSimpleSection("Summary"),
+    buildGroupedSection("Experience", [buildGroup("Junior Software Engineer")]),
     buildGroupedSection("Education", [
-      buildGroup(
-        "Bachelor of Science in Computer Science",
-        "XYZ University, Anytown, USA\n\nGraduated: May 2021"
-      ),
+      buildGroup("Bachelor of Science in Computer Science"),
     ]),
-    buildChipSection("Skills", [
-      "Web Development",
-      "Web Services",
-      "Security",
-      "Cloud Computing",
-      "Mobile Development",
-    ]),
+    buildChipSection("Skills", ["Web Development", "Web Services", "Security"]),
   ],
 });
 
 export const profileAtom = focusAtom(contentAtom, (optic) =>
-  optic.prop("profile")
+  optic.prop("profile"),
 );
 
 export const sectionsAtom = focusAtom(contentAtom, (optic) =>
-  optic.prop("sections")
+  optic.prop("sections"),
 );
 
 interface PageSettings {
@@ -71,11 +54,11 @@ const pageSettingsAtom = atomWithStorage<PageSettings>(
   "openprofile-page-settings",
   {
     size: "LETTER",
-  }
+  },
 );
 
 export const pageSizeAtom = focusAtom(pageSettingsAtom, (optic) =>
-  optic.prop("size")
+  optic.prop("size"),
 );
 
 export const eventBus = createEventBus<"reorder-section">();

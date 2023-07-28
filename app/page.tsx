@@ -1,6 +1,6 @@
 import dynamic from "next/dynamic";
-import { GithubIcon } from "./icons";
-import MainPanel from "./builder/main-panel";
+import MainPanel from "@builder/main-panel";
+import GithubIcon from "@ui/icons/GithubIcon";
 
 export default function Home() {
   return (
@@ -23,6 +23,6 @@ export default function Home() {
   );
 }
 
-const DynamicViewPanel = dynamic(() => import("./builder/view-panel"), {
+const DynamicViewPanel = dynamic(() => import("@builder/view-panel"), {
   ssr: false,
 });

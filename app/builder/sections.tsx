@@ -19,8 +19,11 @@ import {
   ArrowUpIcon as ArrowUp24Icon,
 } from "@heroicons/react/24/outline";
 import { genId, moveArrayElement, useClickAway } from "../helpers";
-import { SimpleButton, SimpleInput, SmallIconButton, TextArea } from "../ui";
-import { eventBus, sectionsAtom } from "../builder/state";
+import { eventBus, sectionsAtom } from "@builder/state";
+import RichTextEditor, { RichTextValue } from "@ui/RichTextEditor";
+import SmallIconButton from "@ui/SmallIconButton";
+import SimpleInput from "@ui/SimpleInput";
+import SimpleButton from "@ui/SimpleButton";
 
 interface SectionBase {
   readonly type: SectionType;
@@ -30,7 +33,7 @@ interface SectionBase {
 
 interface SimpleSection extends SectionBase {
   type: SimpleSectionType;
-  description: string;
+  description: RichTextValue;
 }
 
 interface GroupedSection extends SectionBase {
@@ -46,7 +49,7 @@ interface ChipSection extends SectionBase {
 interface Group {
   id: string;
   title: string;
-  description: string;
+  description: RichTextValue;
 }
 
 export type Section = SimpleSection | GroupedSection | ChipSection;
@@ -64,28 +67,34 @@ type ChipSectionType = "chip";
 
 export function buildGroupedSection(
   name: string = "Untitled section",
-  groups: Group[] = [buildGroup()]
+  groups: Group[] = [buildGroup()],
 ): GroupedSection {
   return { id: genId(), type: "grouped", name, groups };
 }
 
 export function buildSimpleSection(
   name: string = "Untitled section",
-  description: string = ""
+  description: RichTextValue = {
+    type: "doc",
+    content: [{ type: "paragraph" }],
+  },
 ): SimpleSection {
   return { id: genId(), type: "simple", name, description };
 }
 
 export function buildChipSection(
   name: string = "Untitled section",
-  chips: string[] = ["Chip 1"]
+  chips: string[] = ["Chip 1"],
 ): ChipSection {
   return { id: genId(), type: "chip", name, chips };
 }
 
 export function buildGroup(
   title: string = "",
-  description: string = ""
+  description: RichTextValue = {
+    type: "doc",
+    content: [{ type: "paragraph" }],
+  },
 ): Group {
   return { id: genId(), title, description };
 }
@@ -94,7 +103,7 @@ let outlinedTimeout: NodeJS.Timeout;
 let scrollIntoViewTimeout: NodeJS.Timeout;
 
 export const SectionForm: React.FC<{ index: number; section: Section }> = (
-  props
+  props,
 ) => {
   const ref = useRef<HTMLDivElement>(null);
   const setSections = useSetAtom(sectionsAtom);
@@ -106,7 +115,7 @@ export const SectionForm: React.FC<{ index: number; section: Section }> = (
       produce((draft) => {
         const target = direction === "up" ? props.index - 1 : props.index + 1;
         moveArrayElement(draft, props.index, target);
-      })
+      }),
     );
     setOutlined(true);
     setMustScrollIntoView(true);
@@ -119,7 +128,7 @@ export const SectionForm: React.FC<{ index: number; section: Section }> = (
 
     scrollIntoViewTimeout = setTimeout(
       () => ref.current!.scrollIntoView({ behavior: "auto", block: "center" }),
-      50
+      50,
     );
     outlinedTimeout = setTimeout(() => setOutlined(false), 2000);
     setMustScrollIntoView(false);
@@ -160,7 +169,7 @@ const SectionInputHeading: React.FC<{
     setSections(
       produce((draft) => {
         draft[sectionIndex].name = name;
-      })
+      }),
     );
   }
 
@@ -168,7 +177,7 @@ const SectionInputHeading: React.FC<{
     setSections(
       produce((draft) => {
         draft.splice(sectionIndex, 1);
-      })
+      }),
     );
   }
 
@@ -284,7 +293,7 @@ const SectionInput: React.FC<{ index: number; section: Section }> = (props) => {
     setSections(
       produce((draft) => {
         (draft[props.index] as GroupedSection).groups.push(buildGroup());
-      })
+      }),
     );
   }
 
@@ -292,7 +301,7 @@ const SectionInput: React.FC<{ index: number; section: Section }> = (props) => {
     setSections(
       produce((draft) => {
         (draft[props.index] as GroupedSection).groups.splice(groupIndex, 1);
-      })
+      }),
     );
   }
 
@@ -302,9 +311,9 @@ const SectionInput: React.FC<{ index: number; section: Section }> = (props) => {
         moveArrayElement(
           (draft[props.index] as GroupedSection).groups,
           groupIndex,
-          targetIndex
+          targetIndex,
         );
-      })
+      }),
     );
   }
 
@@ -312,7 +321,7 @@ const SectionInput: React.FC<{ index: number; section: Section }> = (props) => {
     setSections(
       produce((draft) => {
         (draft[props.index] as ChipSection).chips.push(value);
-      })
+      }),
     );
   }
 
@@ -320,15 +329,15 @@ const SectionInput: React.FC<{ index: number; section: Section }> = (props) => {
     setSections(
       produce((draft) => {
         (draft[props.index] as ChipSection).chips.splice(index, 1);
-      })
+      }),
     );
   }
 
-  function updateDescription(event: React.ChangeEvent<HTMLTextAreaElement>) {
+  function updateDescription(value: RichTextValue) {
     setSections(
       produce((draft) => {
-        (draft[props.index] as SimpleSection).description = event.target.value;
-      })
+        (draft[props.index] as SimpleSection).description = value;
+      }),
     );
   }
 
@@ -336,16 +345,16 @@ const SectionInput: React.FC<{ index: number; section: Section }> = (props) => {
     setSections(
       produce((draft) => {
         (draft[props.index] as GroupedSection).groups[index].title = value;
-      })
+      }),
     );
   }
 
-  function updateGroupDescription(index: number, value: string) {
+  function updateGroupDescription(index: number, value: RichTextValue) {
     setSections(
       produce((draft) => {
         (draft[props.index] as GroupedSection).groups[index].description =
           value;
-      })
+      }),
     );
   }
 
@@ -353,7 +362,7 @@ const SectionInput: React.FC<{ index: number; section: Section }> = (props) => {
     return (
       <SimpleSectionInput
         section={props.section}
-        onChange={updateDescription}
+        onUpdate={updateDescription}
       />
     );
   }
@@ -382,12 +391,12 @@ const SectionInput: React.FC<{ index: number; section: Section }> = (props) => {
 
 const SimpleSectionInput: React.FC<{
   section: SimpleSection;
-  onChange: React.ComponentProps<typeof TextArea>["onChange"];
+  onUpdate: React.ComponentProps<typeof RichTextEditor>["onUpdate"];
 }> = (props) => (
-  <TextArea
+  <RichTextEditor
     value={props.section.description}
-    onChange={props.onChange}
-    formControlProps={{ containerProps: { className: "pt-2" } }}
+    onUpdate={props.onUpdate}
+    // formControlProps={{ containerProps: { className: "pt-2" } }}
   />
 );
 
@@ -397,7 +406,7 @@ const DetailedSectionInput: React.FC<{
   onRemoveGroup: (index: number) => void;
   onMoveGroup: (index: number, targetIndex: number) => void;
   onUpdateGroupTitle: (index: number, title: string) => void;
-  onUpdateGroupDescription: (index: number, description: string) => void;
+  onUpdateGroupDescription: (index: number, description: RichTextValue) => void;
 }> = (props) => (
   <>
     <div className="divide-y divide-dashed">
@@ -439,10 +448,10 @@ const DetailedSectionInput: React.FC<{
             value={group.title}
             onChange={(_, value) => props.onUpdateGroupTitle(groupIndex, value)}
           />
-          <TextArea
+          <RichTextEditor
             label="Description"
             value={group.description}
-            onChange={(_, value) =>
+            onUpdate={(value) =>
               props.onUpdateGroupDescription(groupIndex, value)
             }
           />
