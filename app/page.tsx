@@ -1,12 +1,19 @@
 import dynamic from "next/dynamic";
 import MainPanel from "@builder/main-panel";
 import GithubIcon from "@ui/icons/GithubIcon";
+import Link from "next/link";
 
 export default function Home() {
   return (
     <main className="flex flex-col h-screen">
-      <div className="flex px-8 py-2 shadow-sm z-10">
+      <div className="flex px-8 py-2 shadow-sm z-10 items-center">
         <h1 className="text-gray-800 text-xl font-bold">OpenProfile</h1>
+        <Link
+          href="/faq"
+          className="ml-2 px-2 py-1 hover:bg-gray-100 rounded-md"
+        >
+          FAQ
+        </Link>
         <div className="ml-auto">
           <a href="https://github.com/azmy60/openprofile" target="_blank">
             <GithubIcon className="w-6 h-6 text-gray-800" />
