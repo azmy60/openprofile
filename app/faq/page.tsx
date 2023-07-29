@@ -69,7 +69,10 @@ export default function FAQPage() {
       <div className="flow-root mt-16">
         <div className="-my-8 divide-y divide-gray-100">
           {faqs.map((faq) => (
-            <details className="group py-8 [&_summary::-webkit-details-marker]:hidden">
+            <details
+              key={faq.question}
+              className="group py-8 [&_summary::-webkit-details-marker]:hidden"
+            >
               <summary className="flex cursor-pointer items-center justify-between text-gray-900">
                 <h2 className="text-lg font-medium">{faq.question}</h2>
                 <svg
