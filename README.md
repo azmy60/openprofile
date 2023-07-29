@@ -1,6 +1,6 @@
 # OpenProfile
 
-Open-source resume builder with markdown support :tada: made with simplicity in mind ✨.
+Open-source resume builder made with simplicity in mind ✨.
 
 ## Development
 
