@@ -1,4 +1,5 @@
 import { RefObject, useEffect, useRef } from "react";
+import memoize from "lodash.memoize";
 
 /** Mutably move an element of `targetIdx` to index `toIdx`. */
 export function moveArrayElement(arr: any[], targetIdx: number, toIdx: number) {
@@ -37,3 +38,11 @@ export const useClickAway = <E extends Event = Event>(
 export function genId(): string {
   return Math.random().toString(16).slice(2);
 }
+
+function _removeUrlProtocol(url: string) {
+  if (url.startsWith("http://")) return url.replace("http://", "");
+  if (url.startsWith("https://")) return url.replace("https://", "");
+  return url;
+}
+
+export const removeUrlProtocol = memoize(_removeUrlProtocol);

@@ -7,6 +7,7 @@ import Link from "@ui-pdf/Link";
 import PhoneIcon from "@ui-pdf/icons/PhoneIcon";
 import IconLinkResolver from "@ui-pdf/IconLinkResolver";
 import RichTextValueResolver from "@ui-pdf/RichTextValueResolver";
+import { removeUrlProtocol } from "../helpers";
 
 const PRIMARY = "#4f46e5";
 const BORDER = "#dde5f7";
@@ -143,7 +144,7 @@ const Basic: React.FC = () => {
                         style={{ width: "12pt", height: "12pt" }}
                         color={PRIMARY}
                       />
-                      <Link src={link}>{link}</Link>
+                      <Link src={link}>{removeUrlProtocol(link)}</Link>
                     </View>
                   )}
                 </View>
@@ -167,7 +168,7 @@ const Basic: React.FC = () => {
                         style={{ width: "12pt", height: "12pt" }}
                         color={PRIMARY}
                       />
-                      <Link src={link2}>{link2}</Link>
+                      <Link src={link2}>{removeUrlProtocol(link2)}</Link>
                     </View>
                   )}
                   {!!link3 && (
@@ -183,7 +184,7 @@ const Basic: React.FC = () => {
                         style={{ width: "12pt", height: "12pt" }}
                         color={PRIMARY}
                       />
-                      <Link src={link3}>{link3}</Link>
+                      <Link src={link3}>{removeUrlProtocol(link3)}</Link>
                     </View>
                   )}
                 </View>

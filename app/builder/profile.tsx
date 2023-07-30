@@ -36,6 +36,20 @@ export const ProfileForm: React.FC = () => {
     reader.readAsDataURL(files[0]);
   }
 
+  function onLinkBlur(
+    e: React.FocusEvent<HTMLInputElement>,
+    name: keyof Profile,
+  ) {
+    const value = e.currentTarget.value;
+    if (
+      value !== "" &&
+      !value.startsWith("https://") &&
+      !value.startsWith("http://")
+    ) {
+      updateProfile(name, "https://" + e.currentTarget.value);
+    }
+  }
+
   return (
     <div>
       <div className="text-lg font-bold">Personal</div>
@@ -76,18 +90,27 @@ export const ProfileForm: React.FC = () => {
           name="link"
           value={profile.link}
           onChange={(_, value) => updateProfile("link", value)}
+          inputProps={{
+            onBlur: (e) => onLinkBlur(e, "link"),
+          }}
         />
         <SimpleInput
           label="Link 2"
           name="link2"
           value={profile.link2}
           onChange={(_, value) => updateProfile("link2", value)}
+          inputProps={{
+            onBlur: (e) => onLinkBlur(e, "link2"),
+          }}
         />
         <SimpleInput
           label="Link 3"
           name="link3"
           value={profile.link3}
           onChange={(_, value) => updateProfile("link3", value)}
+          inputProps={{
+            onBlur: (e) => onLinkBlur(e, "link3"),
+          }}
         />
         {profile.photo ? (
           <button

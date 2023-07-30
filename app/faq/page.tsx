@@ -18,8 +18,7 @@ const faqs: FAQ[] = [
   },
   {
     question: "How do I import my resume?",
-    answer:
-      "Currently, it is not possible to import your resume.",
+    answer: "Currently, it is not possible to import your resume.",
   },
   {
     question: "How can I support OpenProfile?",

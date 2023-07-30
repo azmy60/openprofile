@@ -28,6 +28,7 @@
     "immer": "^10.0.2",
     "jotai": "^2.2.2",
     "jotai-optics": "^0.3.0",
+    "lodash.memoize": "^4.1.2",
     "marked": "^5.1.1",
     "next": "13.4.9",
     "optics-ts": "^2.4.1",
@@ -43,6 +44,7 @@
   "devDependencies": {
     "@swc-jotai/react-refresh": "^0.0.8",
     "@tailwindcss/forms": "^0.5.3",
-    "@tailwindcss/typography": "^0.5.9"
+    "@tailwindcss/typography": "^0.5.9",
+    "@types/lodash.memoize": "^4.1.7"
   }
 }
