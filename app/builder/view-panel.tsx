@@ -15,6 +15,8 @@ import Basic from "../templates/basic";
 import { Font } from "@react-pdf/renderer";
 // import { eventBus } from "./state";
 import SimpleButton from "@ui/SimpleButton";
+import { useAtomValue } from "jotai";
+import { profileAtom } from "./state";
 
 declare var pdfjsLib: typeof pdfjs;
 
@@ -41,6 +43,7 @@ const MainViewPanel: React.FC = () => {
   const [openMenu, setOpenMenu] = useState(false);
   const [pageIsRendering, setPageIsRendering] = useState(false);
   const [pdfDoc, setPdfDoc] = useState<null | PDFDocumentProxy>(null);
+  const name = useAtomValue(profileAtom).name;
 
   const canvas = useRef<HTMLCanvasElement>(null);
   const menu = useRef<HTMLDivElement>(null);
@@ -106,8 +109,8 @@ const MainViewPanel: React.FC = () => {
           <ChevronRightIcon className="w-6 h-6" />
         </button>
         <SimpleButton
-          onClick={() => downloadAsPDF(instance.url!)}
-          className="ml-auto "
+          onClick={() => downloadAsPDF(instance.url!, name)}
+          className="ml-auto"
         >
           Download as PDF
         </SimpleButton>
@@ -183,9 +186,9 @@ async function renderPDFPage(page: PDFPageProxy, canvas: HTMLCanvasElement) {
   });
 }
 
-function downloadAsPDF(url: string) {
+function downloadAsPDF(url: string, name: string) {
   const a = document.createElement("a");
   a.href = url;
-  a.download = "resume.pdf";
+  a.download = `${name} Resume.pdf`;
   a.click();
 }

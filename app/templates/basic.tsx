@@ -17,7 +17,13 @@ const Basic: React.FC = () => {
     useAtomValue(profileAtom);
   const sections = useAtomValue(sectionsAtom);
   return (
-    <Document>
+    <Document
+      producer="OpenProfile"
+      title={`${name} Resume`}
+      author={name}
+      creator="OpenProfile"
+      subject="Resume"
+    >
       <Page
         size={useAtomValue(pageSizeAtom)}
         style={{
