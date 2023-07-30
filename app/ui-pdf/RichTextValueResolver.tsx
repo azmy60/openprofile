@@ -66,9 +66,14 @@ const RichTextValueResolver: React.FC<{ value: RichTextValue }> = (props) => {
         }}
       >
         {val.content?.map((item, idx) => (
-          <Text key={idx}>
-            • <RichTextValueResolver value={item.content} />
-          </Text>
+          <View style={{ display: "flex", flexDirection: "row", gap: "6pt" }}>
+            <Text key={idx}>•</Text>
+            <View
+              style={{ display: "flex", flexDirection: "column", gap: "-8pt" }}
+            >
+              <RichTextValueResolver value={item.content} />
+            </View>
+          </View>
         ))}
       </View>
     );
